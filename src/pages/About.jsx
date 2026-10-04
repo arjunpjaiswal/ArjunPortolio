@@ -84,10 +84,7 @@ export default function About() {
         <p className="page-kicker">01 · Who I Am</p>
         <h1 className="page-title">About Me</h1>
         <p className="page-lede">
-          Final-year <strong style={{ color: 'var(--text)' }}>IT student at RCOEM, Nagpur</strong>, building
-          systems more than pages — <strong style={{ color: 'var(--text)' }}>Java, Spring Boot, JDBC</strong>,
-          and enough curiosity about database internals to write one from scratch.
-          This site doesn't just describe projects; you can run them.
+          Final-year IT student at RCOEM, Nagpur, who likes understanding how things work underneath. I take apart existing projects and rebuild them, because that's the fastest way I know to get strong at the basics. I care about getting details right, and I was the Training &amp; Placement coordinator for my entire 2027 batch. I believe talent is built through hard work, perseverance and knowledge. This site doesn't just describe my projects; you can run them.
         </p>
         <div className="page-links">
           <a className="btn primary" href="/resume.pdf" target="_blank" rel="noopener noreferrer">📄 Resume (PDF)</a>
