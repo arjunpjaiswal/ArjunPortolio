@@ -120,146 +120,80 @@ export default function Home(){
     <main className="wrap">
 
       {/* ---------- Hero Section ---------- */}
-      <section className="hero" id="about" style={{ borderTop:'none' }}>
-        <div className="hero-grid">
+      <section className="hero" id="about" style={{ borderTop: 'none' }}>
+        <div className={`hero-grid hero-fade ${heroVisible ? 'is-visible' : ''}`}>
 
-          {/* Left column */}
-          <div>
-            <div className={`status-pill hero-anim hero-anim--1${heroVisible ? ' hero-anim--in' : ''}`}>
+          {/* Left column: clean typography & actions */}
+          <div className="hero-content">
+            <div className="status-badge">
               <span className="status-dot"></span>
-              <span>Graduating 2027 · Open to SDE &amp; backend roles</span>
-              <span className="blink-cursor" aria-hidden="true">█</span>
+              <span>Open to SDE roles · 2027 grad</span>
             </div>
 
-            <h1 className={`hero-anim hero-anim--2${heroVisible ? ' hero-anim--in' : ''}`}>
-              Arjun Pankaj Jaiswal<br/><em>Java backend engineer.</em>
-            </h1>
+            <h1 className="hero-name">Arjun Pankaj Jaiswal</h1>
+            <p className="hero-subtitle">Java Backend Engineer · Nagpur, India</p>
 
-            {/* ---- Tagline: <Code> From Scratch</Code> properly rendered ---- */}
-            <div className={`hero-tagline hero-anim hero-anim--3${heroVisible ? ' hero-anim--in' : ''}`}>
-              <span className="tg-bracket">&lt;</span>
-              <span className="tg-tag">Code</span>
-              <span className="tg-bracket">&gt;</span>
-              <span className="tg-value"> From Scratch</span>
-              <span className="tg-bracket">&lt;/</span>
-              <span className="tg-tag">Code</span>
-              <span className="tg-bracket">&gt;</span>
-              <span className="tg-sep"> · </span>
-              <span className="tg-bracket">&lt;</span>
-              <span className="tg-tag tg-tag--build">Build</span>
-              <span className="tg-bracket">&gt;</span>
-              <span className="tg-value tg-value--build"> To Understand</span>
-              <span className="tg-bracket">&lt;/</span>
-              <span className="tg-tag tg-tag--build">Build</span>
-              <span className="tg-bracket">&gt;</span>
-            </div>
-            <p
-              className={`hero-anim hero-anim--3${heroVisible ? ' hero-anim--in' : ''}`}
-              style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--text-faint)', marginTop: '10px', letterSpacing: '0.01em' }}
-            >
-              Java · Spring Boot · JDBC · MySQL · Multithreading
+            <p className="hero-statement">
+              I design and build reliable backend systems in Java &amp; Spring Boot.
             </p>
 
-            <div
-              className={`hero-links hero-anim hero-anim--4${heroVisible ? ' hero-anim--in' : ''}`}
-              style={{ marginTop: '28px', alignItems: 'center' }}
-            >
-              <a className="btn primary" href="#projects">View Projects →</a>
-              <a className="btn resume-btn" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-                📄 Resume
-              </a>
-              {/* Icon-button social links — no underlines, consistent with btn sizing */}
-              <a
-                href="https://github.com/arjunpjaiswal"
-                target="_blank"
-                rel="noopener"
-                className="icon-btn"
-                title="GitHub"
-                aria-label="GitHub profile"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-                </svg>
-                <span>GitHub</span>
-              </a>
-              <a
-                href="https://www.linkedin.com/in/arjun-pankaj-jaiswal-b297752a2"
-                target="_blank"
-                rel="noopener"
-                className="icon-btn"
-                title="LinkedIn"
-                aria-label="LinkedIn profile"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                <span>LinkedIn</span>
-              </a>
-              <a
-                href="mailto:arjunphj@gmail.com"
-                className="icon-btn"
-                title="Send email"
-                aria-label="Send email to Arjun"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect width="20" height="16" x="2" y="4" rx="2"/>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                </svg>
-                <span>Email</span>
-              </a>
-            </div>
+            <div className="hero-actions">
+              <div className="hero-btns">
+                <a className="btn primary" href="#projects">View Projects →</a>
+                <a className="btn outline" href="/resume.pdf" target="_blank" rel="noopener noreferrer">Resume ↗</a>
+              </div>
 
-            {/* Subtle scroll hint to balance empty space bottom-left */}
-            <div className={`hero-scroll-wrap hero-anim hero-anim--5${heroVisible ? ' hero-anim--in' : ''}`}>
-              <a href="#projects" className="hero-scroll-hint" aria-label="Scroll to featured projects">
-                <span className="hero-scroll-arrow" aria-hidden="true">↓</span>
-                <span>scroll</span>
-              </a>
+              <div className="hero-social-links">
+                <a
+                  href="https://github.com/arjunpjaiswal"
+                  target="_blank"
+                  rel="noopener"
+                  className="social-link"
+                  title="GitHub"
+                  aria-label="GitHub profile"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/arjun-pankaj-jaiswal-b297752a2"
+                  target="_blank"
+                  rel="noopener"
+                  className="social-link"
+                  title="LinkedIn"
+                  aria-label="LinkedIn profile"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+                <a
+                  href="mailto:arjunphj@gmail.com"
+                  className="social-link"
+                  title="Email"
+                  aria-label="Email Arjun"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  <span>Email</span>
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Right column: profile window + terminal panel */}
-          <div className={`editor-frame hero-anim hero-anim--5${heroVisible ? ' hero-anim--in' : ''}`}>
+          {/* Right column: profile window frame */}
+          <div className="editor-frame">
             <div className="editor-titlebar">
               <span className="dot r"></span><span className="dot y"></span><span className="dot g"></span>
               <span>profile.png</span>
             </div>
             <img className="editor-photo" src={profilePic} alt="Photo of Arjun Pankaj Jaiswal" />
             <div className="editor-caption">Nagpur, India · Final-Year IT</div>
-
-            {/* ── Hero terminal panel ── */}
-            <div className="hero-terminal" role="region" aria-label="Quick info terminal">
-              <div className="ht-line">
-                <span className="ht-prompt">❯</span>
-                <span className="ht-cmd"> whoami</span>
-              </div>
-              <div className="ht-output">
-                <span className="ht-arrow">→</span>&nbsp;Java Backend Engineer
-              </div>
-
-              <div className="ht-line">
-                <span className="ht-prompt">❯</span>
-                <span className="ht-cmd"> stack</span>
-              </div>
-              <div className="ht-output">
-                <span className="ht-arrow">→</span>&nbsp;
-                <span className="ht-val">Java</span>
-                <span className="ht-sep"> · </span>
-                <span className="ht-val ht-mint">Spring Boot</span>
-                <span className="ht-sep"> · </span>
-                <span className="ht-val ht-blue">MySQL</span>
-              </div>
-
-              <div className="ht-line">
-                <span className="ht-prompt">❯</span>
-                <span className="ht-cmd"> status</span>
-              </div>
-              <div className="ht-output">
-                <span className="ht-arrow">→</span>&nbsp;
-                <span className="ht-green">Open to SDE roles</span>
-                <span className="ht-cursor" aria-hidden="true"> █</span>
-              </div>
-            </div>
           </div>
 
         </div>
