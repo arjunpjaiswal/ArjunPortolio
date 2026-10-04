@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSearch — Watch How It Works</title>
+<style>
+  :root{
+    --ink:#2B4C7E; --ink-soft:#557299; --text:#22262B; --text-dim:#6B7480; --text-faint:#9AA2AC;
+    --border:#E4E1D6; --amber:#E3A63E; --blue:#5AA9E6; --green:#6FBF8B; --purple:#9B7EDE; --coral:#E86A5E; --idle:#C9CFD6;
+    --panel:#FAFAF7; --panel-alt:#F1F0EA; --highlight:#FFF3B0;
+    --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --sans: -apple-system,"Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; background:#fff; color:var(--text); font-family:var(--sans); }
+  a{ color:var(--ink); }
+  .screen{ display:none; min-height:100vh; }
+  .screen.active{ display:block; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  /* ===== Landing ===== */
+  #screenSearch{ display:none; }
+  #screenSearch.active{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; min-height:100vh; }
+  .landing-logo{ font-size:52px; font-weight:600; letter-spacing:-0.01em; margin-bottom:26px; }
+  .landing-logo span:nth-child(1){ color:#4285F4; } .landing-logo span:nth-child(2){ color:#EA4335; }
+  .landing-logo span:nth-child(3){ color:#FBBC05; } .landing-logo span:nth-child(4){ color:#4285F4; }
+  .landing-logo span:nth-child(5){ color:#34A853; } .landing-logo span:nth-child(6){ color:#EA4335; }
+  .landing-logo span:nth-child(7){ color:#4285F4; }
+  .landing-bar{ width:100%; max-width:560px; display:flex; align-items:center; gap:12px; border:1px solid #DFE1E5; border-radius:26px; padding:13px 20px; box-shadow:0 1px 6px rgba(0,0,0,.06); }
+  .landing-bar input{ flex:1; border:none; outline:none; font-size:16px; font-family:var(--sans); }
+  .landing-actions{ margin-top:22px; }
+  .landing-actions button{ font-family:var(--sans); font-size:13.5px; font-weight:600; background:#F8F9FA; border:1px solid #F1F1F1; color:#3C4043; border-radius:5px; padding:9px 16px; cursor:pointer; }
+  .landing-actions button:hover{ border-color:#DADCE0; }
+  .landing-chips{ margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .chip-try{ font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); background:#F3F6FA; border:1px solid #E1E7EF; border-radius:14px; padding:5px 11px; cursor:pointer; }
+  .chip-try:hover{ background:#E9EFF7; }
+  .landing-tag{ margin-top:34px; color:var(--text-faint); font-size:12.5px; text-align:center; max-width:44ch; line-height:1.6; }
+
+  /* ===== Story ===== */
+  #screenProcess{ display:none; }
+  #screenProcess.active{ min-height:100vh; display:flex; flex-direction:column; }
+
+  .story-header{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:14px 24px; border-bottom:1px solid #EEE; background:#fff; position:sticky; top:0; z-index:20; }
+  .mini-logo{ font-size:17px; font-weight:700; }
+  .mini-logo span:nth-child(1){ color:#4285F4; } .mini-logo span:nth-child(2){ color:#EA4335; }
+  .mini-logo span:nth-child(3){ color:#FBBC05; } .mini-logo span:nth-child(4){ color:#4285F4; }
+  .mini-logo span:nth-child(5){ color:#34A853; } .mini-logo span:nth-child(6){ color:#EA4335; }
+  .mini-logo span:nth-child(7){ color:#4285F4; }
+  .proc-query{ font-size:12.5px; color:var(--text-dim); flex:1; }
+  .proc-query b{ color:var(--text); }
+  .new-search{ font-size:12px; text-decoration:none; border:1px solid var(--border); padding:5px 11px; border-radius:14px; color:var(--ink); }
+  .new-search:hover{ background:#F3F6FA; }
+
+  .progress-bar-wrap{ display:flex; align-items:center; gap:0; padding:0 24px; background:#fff; border-bottom:1px solid #EEE; position:sticky; top:57px; z-index:19; }
+  .progress-step{ flex:1; padding:10px 4px; text-align:center; position:relative; }
+  .progress-step .ps-dot{ display:block; width:10px; height:10px; border-radius:50%; background:var(--panel-alt); border:2px solid var(--border); margin:0 auto 4px; transition:all .35s; }
+  .progress-step .ps-label{ font-family:var(--mono); font-size:9px; color:var(--text-faint); letter-spacing:0.03em; transition:color .35s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .progress-step.current .ps-dot{ background:var(--amber); border-color:var(--amber); transform:scale(1.4); box-shadow:0 0 0 4px rgba(227,166,62,.2); }
+  .progress-step.current .ps-label{ color:var(--amber); font-weight:700; }
+  .progress-step.done .ps-dot{ background:var(--green); border-color:var(--green); }
+  .progress-step.done .ps-label{ color:var(--green); }
+  .progress-step::after{ content:""; position:absolute; top:15px; left:50%; right:-50%; height:1px; background:var(--border); z-index:-1; }
+  .progress-step:last-child::after{ display:none; }
+
+  .scene-area{ flex:1; padding:28px 24px 120px; max-width:1180px; margin:0 auto; width:100%; }
+  .scene{ display:none; }
+  .scene.active{ display:block; animation:sceneIn .5s cubic-bezier(.22,1,.36,1); }
+  @keyframes sceneIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+
+  .scene-number{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:0.08em; margin-bottom:6px; }
+  .scene-title{ font-size:25px; font-weight:700; margin:0 0 10px; letter-spacing:-0.015em; color:var(--text); }
+  .scene-title .accent{ color:var(--ink); }
+  .scene-sub{ font-size:13.5px; color:var(--text-dim); line-height:1.65; margin:0 0 22px; max-width:74ch; }
+  .scene-sub code{ font-family:var(--mono); background:var(--panel-alt); padding:2px 6px; border-radius:4px; font-size:12.5px; }
+
+  .workspace{ display:grid; grid-template-columns: 1fr 320px; gap:20px; align-items:start; }
+  @media (max-width:900px){ .workspace{ grid-template-columns:1fr; } }
+
+  .main-canvas{ background:linear-gradient(180deg,#FCFCFA,#F6F5EF); border:1px solid var(--border); border-radius:12px; padding:18px; position:relative; overflow:hidden; }
+  .main-canvas::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(43,76,126,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,76,126,.035) 1px, transparent 1px);
+    background-size:32px 32px;
+  }
+  .main-canvas > *{ position:relative; z-index:1; }
+
+  .side-panel{ display:flex; flex-direction:column; gap:12px; position:sticky; top:130px; }
+  .side-card{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .side-card h4{ margin:0 0 8px; font-size:11px; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:700; }
+  .side-card .log-line{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); line-height:1.6; padding:3px 0; border-bottom:1px dashed #F0EFE9; }
+  .side-card .log-line:last-child{ border-bottom:none; }
+  .side-card .log-line .t{ color:var(--text-faint); }
+  .side-card .log-line.hl{ color:var(--text); background:#FFFDF5; margin:0 -6px; padding:3px 6px; border-radius:3px; }
+
+  .seed-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .seed-row{ background:#fff; border:2px solid var(--border); border-radius:10px; padding:12px 14px; transition:all .6s cubic-bezier(.34,1.56,.64,1); position:relative; }
+  .seed-row .sr-label{ font-family:var(--mono); font-size:9.5px; color:var(--text-faint); letter-spacing:0.05em; margin-bottom:4px; }
+  .seed-row .sr-title{ font-size:12.5px; color:var(--text); font-weight:600; margin-bottom:4px; }
+  .seed-row .sr-url{ font-family:var(--mono); font-size:10px; color:var(--ink-soft); }
+  .seed-row .sr-meta{ font-family:var(--mono); font-size:9.5px; color:var(--text-faint); margin-top:6px; display:flex; gap:10px; }
+  .seed-row.queued{ border-color:var(--amber); background:#FFFDF5; box-shadow:0 4px 14px rgba(227,166,62,.15); }
+  .seed-row.queued .sr-label{ color:var(--amber); }
+
+  .queue-table{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
+  .queue-table th{ text-align:left; font-size:9.5px; font-weight:600; color:var(--text-faint); letter-spacing:0.05em; padding:6px 8px; border-bottom:1px solid var(--border); background:#fff; text-transform:uppercase; }
+  .queue-table td{ padding:7px 8px; border-bottom:1px solid #F5F4EE; color:var(--text); vertical-align:middle; }
+  .queue-table tr.next-row{ background:#FFFDF5; }
+  .queue-table tr.next-row td:first-child{ border-left:3px solid var(--amber); }
+
+  .queue-table .url-cell{ color:var(--ink-soft); max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .queue-table tr.row-new td{ animation:rowFlash 1.2s ease; }
+  @keyframes rowFlash{ 0%{ background:#FFFDF5; } 30%{ background:#FFF3B0; } 100%{ background:transparent; } }
+
+  .pipeline-strip{ display:grid; grid-template-columns:1fr 40px 1fr 40px 1fr 40px 1fr; align-items:stretch; gap:0; margin-bottom:14px; }
+  .pstage{ background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:10px 12px; min-height:130px; position:relative; transition:all .4s; display:flex; flex-direction:column; }
+  .pstage.active{ border-color:var(--amber); background:#FFFDF5; box-shadow:0 4px 16px rgba(227,166,62,.18); }
+  .pstage.done{ border-color:var(--green); background:#F5FBF7; }
+  .pstage .ps-head{ font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.05em; color:var(--text-dim); margin-bottom:6px; display:flex; justify-content:space-between; }
+  .pstage.active .ps-head{ color:var(--amber); }
+  .pstage.done .ps-head{ color:var(--green); }
+  .pstage .ps-payload{ flex:1; font-family:var(--mono); font-size:10.5px; color:var(--text); line-height:1.6; word-break:break-all; }
+  .pstage .ps-payload .hint{ color:var(--text-faint); font-style:italic; }
+  .pstage .ps-payload .k{ color:var(--ink); }
+  .pstage .ps-payload .v{ color:var(--text); }
+  .pstage .ps-payload .new-link{ display:block; color:var(--blue); margin:2px 0; }
+  .pstage .ps-payload .dup-link{ display:block; color:var(--text-faint); text-decoration:line-through; }
+  .pstage .ps-foot{ margin-top:8px; padding-top:6px; border-top:1px dashed var(--border); font-family:var(--mono); font-size:9.5px; color:var(--text-faint); display:flex; justify-content:space-between; }
+  .parrow{ display:flex; align-items:center; justify-content:center; color:var(--idle); font-size:20px; transition:color .4s; }
+  .parrow.lit{ color:var(--amber); animation:arrowPulse .8s ease infinite; }
+  @keyframes arrowPulse{ 0%,100%{ transform:translateX(0); } 50%{ transform:translateX(4px); } }
+
+  .worker-token{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#fff; border:1.5px solid var(--amber); border-radius:14px; font-family:var(--mono); font-size:11px; color:var(--text); box-shadow:0 3px 10px rgba(227,166,62,.2); }
+  .worker-token .avatar{ font-size:14px; }
+
+  .worker-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+  @media (max-width:900px){ .worker-grid{ grid-template-columns:repeat(2,1fr); } }
+  .wcard{ background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:9px 10px 11px; min-height:150px; position:relative; transition:all .4s; display:flex; flex-direction:column; }
+  .wcard[data-state="delaying"]{ border-color:var(--purple); background:#F9F7FE; }
+  .wcard[data-state="fetching"]{ border-color:var(--amber); background:#FFFDF5; }
+  .wcard[data-state="parsing"]{ border-color:var(--blue); background:#F5FAFE; }
+  .wcard[data-state="indexing"]{ border-color:var(--green); background:#F5FBF7; }
+  .wcard[data-state="idle"]{ opacity:.5; }
+  .wcard .wc-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .wcard .wc-id{ font-family:var(--mono); font-size:10.5px; font-weight:700; color:var(--ink); }
+  .wcard .wc-avatar{ font-size:15px; }
+  .wcard .wc-state{ font-family:var(--mono); font-size:8.5px; letter-spacing:0.03em; padding:2px 6px; border-radius:8px; background:var(--panel-alt); color:var(--text-faint); margin-bottom:5px; align-self:flex-start; }
+  .wcard[data-state="delaying"] .wc-state{ background:var(--purple); color:#fff; }
+  .wcard[data-state="fetching"] .wc-state{ background:var(--amber); color:#fff; }
+  .wcard[data-state="parsing"] .wc-state{ background:var(--blue); color:#fff; }
+  .wcard[data-state="indexing"] .wc-state{ background:var(--green); color:#fff; }
+  .wcard .wc-task{ font-family:var(--mono); font-size:9.5px; color:var(--text); line-height:1.4; margin-bottom:6px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; word-break:break-all; }
+  .wcard .wc-task .url{ color:var(--ink-soft); }
+  .wcard .wc-task .sub{ color:var(--text-faint); display:block; margin-top:2px; }
+  .wcard .wc-bar{ height:3px; background:#E9E7DD; border-radius:2px; overflow:hidden; margin-top:auto; }
+  .wcard .wc-bar-fill{ height:100%; width:0%; border-radius:2px; transition:width .15s linear; }
+  .wcard[data-state="delaying"] .wc-bar-fill{ background:var(--purple); }
+  .wcard[data-state="fetching"] .wc-bar-fill{ background:var(--amber); }
+  .wcard[data-state="parsing"] .wc-bar-fill{ background:var(--blue); }
+  .wcard[data-state="indexing"] .wc-bar-fill{ background:var(--green); }
+  .wcard .wc-timer{ font-family:var(--mono); font-size:9px; color:var(--text-faint); margin-top:5px; display:flex; justify-content:space-between; }
+
+  .stats-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:14px; }
+  .stat{ background:var(--panel); padding:10px 12px; display:flex; flex-direction:column; gap:2px; }
+  .stat-value{ font-family:var(--mono); font-size:18px; font-weight:600; color:var(--text); }
+  .stat-label{ font-size:10px; color:var(--text-dim); }
+
+
+
+  .search-pipe{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center; padding:16px 0; }
+  .sp-node{ padding:10px 16px; border-radius:10px; border:1.5px solid var(--border); background:#fff; font-family:var(--mono); font-size:11px; color:var(--text-dim); transition:all .4s; }
+  .sp-node.active{ border-color:var(--amber); color:var(--amber); box-shadow:0 4px 14px rgba(227,166,62,.25); transform:translateY(-2px); }
+  .sp-node.done{ border-color:var(--green); background:#F5FBF7; color:var(--green); }
+  .sp-arrow{ color:var(--idle); font-size:16px; }
+  .sp-arrow.lit{ color:var(--amber); }
+
+  .detail-block{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-top:14px; font-family:var(--mono); font-size:11.5px; line-height:1.75; color:var(--text-dim); min-height:110px; }
+  .detail-block .head{ font-size:12px; color:var(--ink); font-weight:700; margin-bottom:8px; }
+  .detail-block .tok{ display:inline-block; background:#EEF2F8; border:1px solid #DCE4F0; border-radius:4px; padding:1px 7px; margin:2px 4px 2px 0; font-size:11px; color:var(--ink); }
+  .detail-block table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  .detail-block th, .detail-block td{ padding:5px 6px; text-align:left; font-size:11px; border-bottom:1px solid #F5F4EE; }
+  .detail-block th{ color:var(--text-faint); font-weight:600; font-size:10px; letter-spacing:0.03em; }
+  .detail-block .bar-mini{ height:4px; background:#E9E7DD; border-radius:2px; overflow:hidden; min-width:60px; display:inline-block; vertical-align:middle; }
+  .detail-block .bar-mini div{ height:100%; background:var(--green); }
+
+  .ai-overview{ background:#F5F8FC; border:1px solid #E1E9F4; border-radius:10px; padding:14px 16px; margin-bottom:18px; }
+  .ai-overview .label{ font-size:11px; font-weight:700; color:var(--ink); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .ai-overview .label .ai-badge{ font-size:9px; background:var(--ink); color:#fff; padding:1px 5px; border-radius:3px; }
+  .ai-overview p{ margin:0; font-size:13.5px; line-height:1.6; color:var(--text); }
+  .results-meta{ color:var(--text-faint); font-size:12px; margin-bottom:14px; }
+  .result-item{ margin-bottom:20px; opacity:0; animation:fadeUp .5s ease forwards; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .result-item .title{ color:#1A0DAB; font-size:16px; text-decoration:none; }
+  .result-item .url{ color:#006621; font-size:12px; margin:2px 0 4px; }
+  .result-item .snippet{ color:#4D5156; font-size:12.5px; line-height:1.5; }
+  .result-item .score{ color:var(--text-faint); font-size:10px; font-family:var(--mono); }
+
+  .story-nav{ position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.96); backdrop-filter:blur(8px); border-top:1px solid #EEE; padding:14px 24px; z-index:30; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .nav-left{ display:flex; align-items:center; gap:12px; }
+  .nav-cta{ font-family:var(--sans); font-size:13px; font-weight:600; padding:10px 22px; border-radius:22px; border:none; cursor:pointer; transition:all .25s; }
+  .nav-cta.primary{ background:var(--ink); color:#fff; }
+  .nav-cta.primary:hover{ background:#1E3A63; transform:translateY(-1px); box-shadow:0 4px 12px rgba(43,76,126,.25); }
+  .nav-cta.primary:disabled{ background:var(--idle); cursor:not-allowed; transform:none; box-shadow:none; }
+  .nav-cta.ghost{ background:transparent; color:var(--text-dim); }
+  .nav-cta.ghost:hover{ color:var(--ink); background:var(--panel-alt); }
+  .nav-hint{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+  .nav-status{ font-family:var(--mono); font-size:11px; color:var(--amber); display:flex; align-items:center; gap:6px; }
+  .nav-status .dot-anim{ width:6px; height:6px; border-radius:50%; background:var(--amber); animation:dotPulse 1s ease infinite; }
+  @keyframes dotPulse{ 0%,100%{ opacity:.4; transform:scale(1); } 50%{ opacity:1; transform:scale(1.3); } }
+
+  @media (max-width:700px){
+    .scene-title{ font-size:21px; }
+    .pipeline-strip{ grid-template-columns:1fr; }
+    .parrow{ transform:rotate(90deg); }
+    .stats-strip{ grid-template-columns:repeat(2,1fr); }
+    .story-header{ padding:12px 16px; }
+    .progress-bar-wrap{ padding:0 16px; top:53px; }
+    .scene-area{ padding:20px 16px 120px; }
+  }
+
+  /* ===== Architecture map (landing) ===== */
+  .arch-map{ margin-top:36px; width:100%; max-width:640px; }
+  .arch-map svg{ width:100%; height:auto; display:block; }
+  .arch-box{ fill:#fff; stroke:var(--border); stroke-width:1.3; }
+  .arch-box.store{ fill:var(--panel); }
+  .arch-title{ font-family:var(--sans); font-size:10.5px; font-weight:600; fill:var(--text); }
+  .arch-sub{ font-family:var(--mono); font-size:8px; fill:var(--text-faint); }
+  .arch-lane{ font-family:var(--mono); font-size:8.5px; fill:var(--text-faint); }
+  .flow-edge{ fill:none; stroke:var(--ink-soft); stroke-width:1.3; stroke-dasharray:4 5; opacity:.7; animation:flowDash 1.6s linear infinite; }
+  .flow-edge.q{ stroke:var(--green); animation-duration:2.4s; }
+  @keyframes flowDash{ to{ stroke-dashoffset:-18; } }
+
+  /* ===== Inverted index build ===== */
+
+  /* ===== Stacked score bars ===== */
+  .sbar{ display:flex; height:11px; border-radius:3px; overflow:hidden; background:var(--panel-alt); min-width:90px; }
+  .sbar i{ display:block; width:0; height:100%; transition:width .9s cubic-bezier(.4,0,.2,1); }
+  .tok-key{ display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 2px; font-family:var(--mono); font-size:9.5px; color:var(--text-dim); }
+  .tok-key span i{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:4px; }
+
+  /* ===== AI overview streaming ===== */
+  .ai-caret{ display:inline-block; width:2px; height:13px; background:var(--ink); vertical-align:-2px; margin-left:1px; animation:caretBlink .8s step-end infinite; }
+  @keyframes caretBlink{ 50%{ opacity:0; } }
+  .src-strip{ display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; padding-top:9px; border-top:1px solid #E1E9F4; }
+  .src-chip{ font-family:var(--mono); font-size:9px; color:var(--ink-soft); background:#fff; border:1px solid #DCE6F2; border-radius:11px; padding:2px 8px; }
+  .src-note{ font-family:var(--mono); font-size:9px; color:var(--text-faint); margin-top:7px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LANDING ===== -->
+<div class="screen active" id="screenSearch">
+  <div class="landing-logo"><span>G</span><span>S</span><span>e</span><span>a</span><span>r</span><span>c</span><span>h</span></div>
+  <div class="landing-bar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#4285F4" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="queryInput" type="text" placeholder="Search GSearch..." autocomplete="off">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" stroke="#5F6368" stroke-width="1.6"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="#5F6368" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </div>
+  <div class="landing-actions"><button id="goBtn">GSearch Search</button></div>
+  <div class="landing-chips">
+    <span class="chip-try" data-q="java">java</span>
+    <span class="chip-try" data-q="thread pool">thread pool</span>
+    <span class="chip-try" data-q="inverted index">inverted index</span>
+    <span class="chip-try" data-q="machine learning algorithm">machine learning algorithm</span>
+  </div>
+  <div class="arch-map" aria-label="How GSearch is wired">
+    <svg viewBox="0 0 640 236" xmlns="http://www.w3.org/2000/svg">
+      <text class="arch-lane" x="10" y="16">crawl — on startup, on POST /api/crawl, and nightly at 2 AM</text>
+      <rect class="arch-box" x="10" y="26" width="104" height="44" rx="8"/>
+      <text class="arch-title" x="62" y="46" text-anchor="middle">Seed URLs</text>
+      <text class="arch-sub" x="62" y="59" text-anchor="middle">from POST /api/crawl</text>
+      <path class="flow-edge" d="M114 48 H150"/>
+      <rect class="arch-box" x="150" y="26" width="126" height="44" rx="8"/>
+      <text class="arch-title" x="213" y="46" text-anchor="middle">CrawlerService</text>
+      <text class="arch-sub" x="213" y="59" text-anchor="middle">Jsoup · 10 threads</text>
+      <path class="flow-edge" d="M276 48 H312"/>
+      <rect class="arch-box" x="312" y="26" width="126" height="44" rx="8"/>
+      <text class="arch-title" x="375" y="46" text-anchor="middle">IndexerService</text>
+      <text class="arch-sub" x="375" y="59" text-anchor="middle">tokenize · TF-IDF</text>
+      <path class="flow-edge" d="M438 48 H474"/>
+      <rect class="arch-box store" x="474" y="26" width="156" height="44" rx="8"/>
+      <text class="arch-title" x="552" y="46" text-anchor="middle">MySQL</text>
+      <text class="arch-sub" x="552" y="59" text-anchor="middle">documents · index_entries</text>
+      <path class="flow-edge" d="M213 70 V92 H552 V70" stroke-dasharray="3 6"/>
+      <text class="arch-sub" x="360" y="105" text-anchor="middle">discovered links loop back into the same pool</text>
+
+      <text class="arch-lane" x="10" y="140">search — one request thread</text>
+      <rect class="arch-box" x="10" y="150" width="104" height="44" rx="8"/>
+      <text class="arch-title" x="62" y="170" text-anchor="middle">Query</text>
+      <text class="arch-sub" x="62" y="183" text-anchor="middle">GET /api/search</text>
+      <path class="flow-edge q" d="M114 172 H150"/>
+      <rect class="arch-box" x="150" y="150" width="126" height="44" rx="8"/>
+      <text class="arch-title" x="213" y="170" text-anchor="middle">SearchService</text>
+      <text class="arch-sub" x="213" y="183" text-anchor="middle">tokenize · rank · page</text>
+      <path class="flow-edge q" d="M276 172 H312"/>
+      <rect class="arch-box" x="312" y="150" width="126" height="44" rx="8"/>
+      <text class="arch-title" x="375" y="170" text-anchor="middle">AISummaryService</text>
+      <text class="arch-sub" x="375" y="183" text-anchor="middle">top 5 results as context</text>
+      <path class="flow-edge q" d="M438 172 H474"/>
+      <rect class="arch-box" x="474" y="150" width="156" height="44" rx="8"/>
+      <text class="arch-title" x="552" y="170" text-anchor="middle">Groq</text>
+      <text class="arch-sub" x="552" y="183" text-anchor="middle">openai/gpt-oss-20b</text>
+      <path class="flow-edge q" d="M213 150 V118 H552 V70" stroke-dasharray="3 6"/>
+      <text class="arch-sub" x="360" y="131" text-anchor="middle">postings and stored scores read back from the index</text>
+      <text class="arch-sub" x="320" y="222" text-anchor="middle">Search never recomputes TF-IDF — the crawler already wrote it.</text>
+    </svg>
+  </div>
+  <p class="landing-tag">A simulated trace of the real GSearch pipeline. Sample URLs move through the same stages the crawler and search service actually run — payloads, byte counts and timings here are illustrative, not a live crawl.</p>
+</div>
+
+<!-- ===== STORY ===== -->
+<div class="screen" id="screenProcess">
+  <div class="story-header">
+    <div class="mini-logo"><span>G</span><span>S</span><span>e</span><span>a</span><span>r</span><span>c</span><span>h</span></div>
+    <div class="proc-query">Tracing <b id="procQueryText">"..."</b></div>
+    <a href="#" class="new-search" id="newSearchLink">New search</a>
+  </div>
+
+  <div class="progress-bar-wrap" id="progressBar"></div>
+
+  <div class="scene-area">
+
+    <!-- SCENE 0 -->
+    <div class="scene active" data-scene="0">
+      <div class="scene-number">SCENE 01 · THE STARTING POINT</div>
+      <h1 class="scene-title">Four seed URLs enter the <span class="accent">system</span>.</h1>
+      <p class="scene-sub">Seed URLs arrive in the body of <code>POST /api/crawl</code> (on first launch the app seeds itself automatically). These are the only URLs GSearch knows to begin with — everything else is discovered by following links, until <code>crawler.max.pages=500</code> is reached.</p>
+      <div class="workspace">
+        <div class="main-canvas">
+          <div class="seed-grid" id="seedGrid"></div>
+        </div>
+        <div class="side-panel">
+          <div class="side-card">
+            <h4>Live counter</h4>
+            <div style="font-family:var(--mono); font-size:12px; color:var(--text-dim);">
+              Seeds queued: <span id="seedCount" style="color:var(--ink); font-weight:700;">0</span> / 4
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 1 -->
+    <div class="scene" data-scene="1">
+      <div class="scene-number">SCENE 02 · THE TASK QUEUE</div>
+      <h1 class="scene-title">Pending URLs live in the <span class="accent">pool's own task queue</span>.</h1>
+      <p class="scene-sub">GSearch has no separate queue object of its own — each pending URL <em>is</em> a task waiting in the <code>ExecutorService</code> queue. <code>crawlUrl()</code> submits new tasks for the links it finds, and the pool's own FIFO ordering is what makes the crawl expand breadth-first rather than following one link chain deep.</p>
+      <div class="workspace">
+        <div class="main-canvas">
+          <table class="queue-table" id="queueTable">
+            <thead>
+              <tr><th style="width:24px;">#</th><th>URL</th><th style="width:110px;">Discovered from</th></tr>
+            </thead>
+            <tbody id="queueBody"></tbody>
+          </table>
+        </div>
+        <div class="side-panel">
+          <div class="side-card">
+            <h4>Queue state</h4>
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); line-height:1.9;">
+              <div>size: <span id="fqSize" style="color:var(--ink); font-weight:700;">0</span></div>
+              <div>head: <span id="fqHead" style="color:var(--amber); font-weight:700;">—</span></div>
+              <div>structure: ExecutorService task queue</div>
+              <div>order: FIFO → breadth-first</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 2 -->
+    <div class="scene" data-scene="2">
+      <div class="scene-number">SCENE 03 · ONE WORKER, ONE URL</div>
+      <h1 class="scene-title">Following <span class="accent">one thread</span> through one full cycle.</h1>
+      <p class="scene-sub">This is the "Runnable" body, step by step. The worker takes a URL task, waits out the politeness delay, fetches the page, extracts links, computes TF-IDF, and writes to the database. Each stage shows the payload it is working with.</p>
+      <div class="workspace">
+        <div class="main-canvas">
+          <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+            <div class="worker-token" id="traceWorker"><span class="avatar">🧑‍💻</span> <span>T-0</span></div>
+            <div style="font-family:var(--mono); font-size:11px; color:var(--text-faint);">elapsed: <span id="traceClock" style="color:var(--ink); font-weight:700;">0.0s</span></div>
+          </div>
+          <div class="pipeline-strip" id="pipelineStrip">
+            <div class="pstage" data-stage="fetch">
+              <div class="ps-head"><span>1 · FETCH</span><span id="fetchTimer">—</span></div>
+              <div class="ps-payload" id="fetchPayload"><span class="hint">waiting…</span></div>
+              <div class="ps-foot"><span id="fetchFoot">not started</span><span></span></div>
+            </div>
+            <div class="parrow" data-parrow="1">→</div>
+            <div class="pstage" data-stage="parse">
+              <div class="ps-head"><span>2 · PARSE</span><span id="parseTimer">—</span></div>
+              <div class="ps-payload" id="parsePayload"><span class="hint">waiting…</span></div>
+              <div class="ps-foot"><span id="parseFoot">not started</span><span></span></div>
+            </div>
+            <div class="parrow" data-parrow="2">→</div>
+            <div class="pstage" data-stage="index">
+              <div class="ps-head"><span>3 · INDEX</span><span id="indexTimer">—</span></div>
+              <div class="ps-payload" id="indexPayload"><span class="hint">waiting…</span></div>
+              <div class="ps-foot"><span id="indexFoot">not started</span><span></span></div>
+            </div>
+            <div class="parrow" data-parrow="3">→</div>
+            <div class="pstage" data-stage="done">
+              <div class="ps-head"><span>4 · DONE</span><span id="doneTimer">—</span></div>
+              <div class="ps-payload" id="donePayload"><span class="hint">waiting…</span></div>
+              <div class="ps-foot"><span id="doneFoot">not started</span><span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="side-card">
+            <h4>Console</h4>
+            <div id="traceLog" style="font-family:var(--mono); font-size:10.5px; line-height:1.7;">
+              <div class="log-line t">click Continue to start →</div>
+            </div>
+          </div>
+          <div class="side-card">
+            <h4>Worker state</h4>
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--text-dim); line-height:1.9;">
+              <div>state: <span id="traceState" style="color:var(--idle); font-weight:700;">IDLE</span></div>
+              <div>url: <span id="traceUrl" style="color:var(--text-faint);">—</span></div>
+              <div>calls: <span id="traceDepth" style="color:var(--text-faint);">shouldCrawl → indexerService.indexPage</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 3 -->
+    <div class="scene" data-scene="3">
+      <div class="scene-number">SCENE 04 · THE POOL</div>
+      <h1 class="scene-title">Now <span class="accent">10 workers</span> share one task queue.</h1>
+      <p class="scene-sub">Each card is a worker thread from <code>Executors.newFixedThreadPool(10)</code>. Every thread takes tasks from the same queue and submits the links it discovers back into it, so no two workers ever process the same URL — and when the queue empties, they block. Each thread also honours <code>crawler.politeness.delay=1000</code> before every fetch, and the whole crawl stops at <code>crawler.max.pages=500</code>.</p>
+      <div class="stats-strip">
+        <div class="stat"><span class="stat-value" id="statCrawled">0</span><span class="stat-label">Pages crawled</span></div>
+        <div class="stat"><span class="stat-value" id="statQueue">4</span><span class="stat-label">Tasks queued</span></div>
+        <div class="stat"><span class="stat-value" id="statDup">0</span><span class="stat-label">Duplicates skipped</span></div>
+        <div class="stat"><span class="stat-value" id="statTerms">0</span><span class="stat-label">Index terms</span></div>
+      </div>
+      <div class="workspace" style="grid-template-columns:1fr;">
+        <div class="main-canvas">
+          <div class="worker-grid" id="workerGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 4 -->
+    <div class="scene" data-scene="4">
+      <div class="scene-number">SCENE 05 · YOUR QUERY</div>
+      <h1 class="scene-title">Query resolution — <span class="accent">one request, one thread</span>.</h1>
+      <p class="scene-sub">Now that the index is built, watch what happens when a user searches. This is a straight line: <code>Controller → Service → Index → AI</code>. The crawler pool plays no part — a single Tomcat request thread handles it end to end. Each step shows the data it is working with.</p>
+      <div class="workspace" style="grid-template-columns:1fr;">
+        <div class="main-canvas">
+          <div class="search-pipe" id="searchPipe">
+            <div class="sp-node" data-sp="0">1 · tokenize()</div>
+            <div class="sp-arrow" data-sparrow="0">→</div>
+            <div class="sp-node" data-sp="1">2 · findByTerm()</div>
+            <div class="sp-arrow" data-sparrow="1">→</div>
+            <div class="sp-node" data-sp="2">3 · sum stored scores</div>
+            <div class="sp-arrow" data-sparrow="2">→</div>
+            <div class="sp-node" data-sp="3">4 · sort+paginate()</div>
+            <div class="sp-arrow" data-sparrow="3">→</div>
+            <div class="sp-node" data-sp="4">5 · lazy.fetch()</div>
+            <div class="sp-arrow" data-sparrow="4">→</div>
+            <div class="sp-node" data-sp="5">6 · groq.summarize()</div>
+          </div>
+          <div class="detail-block" id="searchDetail">
+            <div class="head">Waiting</div>
+            Click <b>Continue</b> in the bottom bar to run the query through this pipeline.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 5 -->
+    <div class="scene" data-scene="5">
+      <div class="scene-number">SCENE 06 · THE RESULT</div>
+      <h1 class="scene-title">What the <span class="accent">user sees</span>.</h1>
+      <p class="scene-sub">An AI Overview built from the top 5 ranked results (grounded — no hallucination), then the paginated SERP-style list. This is the payoff of every thread that ran in Phase 1.</p>
+      <div class="workspace" style="grid-template-columns:1fr;">
+        <div class="main-canvas" style="background:#fff;">
+          <div class="results-meta" id="resultsMeta"></div>
+          <div class="ai-overview" id="aiOverview"></div>
+          <div id="resultsList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="story-nav">
+    <div class="nav-left">
+      <button class="nav-cta ghost" id="backBtn">← Back</button>
+      <span class="nav-hint" id="navHint">Scene 1 of 6</span>
+      <span class="nav-status" id="navStatus" style="display:none;"><span class="dot-anim"></span><span id="navStatusText"></span></span>
+    </div>
+    <button class="nav-cta primary" id="nextBtn">Continue →</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const CORPUS = [
+    "Java (programming language)","Algorithm","Machine learning","Data structure","Binary search",
+    "Merge sort","Quicksort","Hash table","Graph theory","Recursion",
+    "Dynamic programming","Object-oriented programming","Compiler","Operating system","Transmission Control Protocol",
+    "Artificial neural network","Big O notation","Linked list","Binary tree","Depth-first search",
+    "Breadth-first search","Concurrency (computer science)","Thread pool","Garbage collection","Spring Framework",
+    "Representational state transfer","Inverted index","Tf-idf","Web crawler","Search engine",
+    "Relational database","SQL","B-tree","Load balancing (computing)","Cache (computing)",
+    "Distributed computing","Apache Kafka","Elasticsearch","Apache Lucene","PageRank",
+    "Natural language processing","Stemming","Tokenization (lexical analysis)","Regular expression","HTTP"
+  ];
+  const SEEDS = ["Java (programming language)","Algorithm","Machine learning","Data structure"];
+  const NUM_WORKERS = 10;
+  const MAX_PAGES = 500;            // crawler.max.pages
+  const POLITENESS_DELAY = 1.0;     // crawler.politeness.delay = 1000ms
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const WORKER_EMOJIS = ["🧑‍💻","👩‍💻","🧑‍🔧","👨‍🔧","🧑‍🚀","👩‍🚀","🧑‍🔬","👩‍🔬","🧑‍🏭","👩‍🏭"];
+
+  function slug(t){ return "en.wikipedia.org/wiki/" + t.replace(/ /g,"_"); }
+  function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return h; }
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r, reduced?0:ms)); }
+  function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+  function shortUrl(u){ return u.replace("en.wikipedia.org/wiki/",""); }
+  function pickLinks(n, excludeTitle){
+    const pool = CORPUS.filter(t=>t!==excludeTitle);
+    const out = [];
+    while(out.length < Math.min(n,pool.length)){
+      const c = pool[Math.floor(Math.random()*pool.length)];
+      if(!out.includes(c)) out.push(c);
+    }
+    return out.map(slug);
+  }
+
+  // ---------- NAV ----------
+  const screenSearch = document.getElementById("screenSearch");
+  const screenProcess = document.getElementById("screenProcess");
+  const scenes = document.querySelectorAll(".scene");
+  const progressBar = document.getElementById("progressBar");
+  const navHint = document.getElementById("navHint");
+  const navStatus = document.getElementById("navStatus");
+  const navStatusText = document.getElementById("navStatusText");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const SCENE_LABELS = ["Seeds","Queue","1 Worker","The Pool","Query","Results"];
+  let currentScene = 0;
+  let pendingQuery = "";
+  let sceneActions = {};
+
+  progressBar.innerHTML = "";
+  SCENE_LABELS.forEach((label, i)=>{
+    const el = document.createElement("div");
+    el.className = "progress-step";
+    el.innerHTML = '<span class="ps-dot"></span><span class="ps-label">'+label+'</span>';
+    progressBar.appendChild(el);
+  });
+  function updateProgress(){
+    progressBar.querySelectorAll(".progress-step").forEach((el,i)=>{
+      el.classList.remove("current","done");
+      if(i < currentScene) el.classList.add("done");
+      if(i === currentScene) el.classList.add("current");
+    });
+    navHint.textContent = "Scene " + (currentScene+1) + " of " + scenes.length;
+    backBtn.style.visibility = currentScene === 0 ? "hidden" : "visible";
+    if(currentScene === scenes.length - 1){
+      nextBtn.textContent = "Start over ↻";
+    } else {
+      nextBtn.textContent = "Continue →";
+    }
+  }
+  function showBusy(text){
+    if(text){ navStatusText.textContent = text; navStatus.style.display = "flex"; }
+    else { navStatus.style.display = "none"; }
+  }
+  function setNextEnabled(enabled){
+    nextBtn.disabled = !enabled;
+  }
+
+  // =====================================================
+  // NAVIGATION — KEY FIX
+  // Only scroll to top when entering/exiting the whole story flow.
+  // Between scenes, keep the user exactly where they are.
+  // =====================================================
+  function gotoScene(idx, opts){
+    if(idx < 0 || idx >= scenes.length) return;
+    opts = opts || {};
+    const shouldScroll = opts.scroll === true; // default: DON'T scroll
+
+    // Remember current scroll position (so we can restore after scene swap)
+    const prevScrollY = window.scrollY;
+
+    scenes[currentScene].classList.remove("active");
+    currentScene = idx;
+    scenes[currentScene].classList.add("active");
+    updateProgress();
+    setNextEnabled(true);
+    showBusy(null);
+
+    if(shouldScroll){
+      // Explicit scroll requested (e.g. entering story from landing)
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+    } else {
+      // Keep the reader in place — but clamp to the new page height
+      // in case the new scene is shorter than the old one.
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const targetY = Math.min(prevScrollY, maxScroll);
+      // Use instant scroll to avoid a janky animation when content height changes
+      window.scrollTo(0, targetY);
+    }
+
+    if(sceneActions[idx]) sceneActions[idx]();
+  }
+
+  nextBtn.addEventListener("click", ()=>{
+    if(currentScene === scenes.length - 1){
+      screenProcess.classList.remove("active");
+      screenSearch.classList.add("active");
+      input.value = "";
+      pendingQuery = "";
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+      return;
+    }
+    gotoScene(currentScene + 1);
+  });
+  backBtn.addEventListener("click", ()=>{ gotoScene(currentScene - 1); });
+
+  // ---------- LANDING ----------
+  const input = document.getElementById("queryInput");
+  const goBtn = document.getElementById("goBtn");
+  function submit(){
+    const q = input.value.trim();
+    if(!q) return;
+    pendingQuery = q;
+    document.getElementById("procQueryText").textContent = '"' + q + '"';
+    screenSearch.classList.remove("active");
+    screenProcess.classList.add("active");
+    resetAll();
+    currentScene = 0;
+    scenes.forEach(s=>s.classList.remove("active"));
+    scenes[0].classList.add("active");
+    updateProgress();
+    // ONLY scroll-to-top here — the moment of entering the story
+    window.scrollTo(0, 0);
+    if(sceneActions[0]) sceneActions[0]();
+  }
+  goBtn.addEventListener("click", submit);
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter") submit(); });
+  document.querySelectorAll(".chip-try").forEach(c=>{
+    c.addEventListener("click", ()=>{ input.value = c.dataset.q; submit(); });
+  });
+  document.getElementById("newSearchLink").addEventListener("click", e=>{
+    e.preventDefault();
+    screenProcess.classList.remove("active");
+    screenSearch.classList.add("active");
+    // ONLY scroll-to-top here — the moment of returning to landing
+    window.scrollTo(0, 0);
+  });
+
+  // =====================================================
+  // SCENE 0 — SEEDS
+  // =====================================================
+  sceneActions[0] = async function(){
+    const grid = document.getElementById("seedGrid");
+    grid.innerHTML = "";
+    document.getElementById("seedCount").textContent = "0";
+    setNextEnabled(false);
+    showBusy("preparing seeds…");
+    await sleep(600);
+
+    for(let i=0;i<SEEDS.length;i++){
+      const s = SEEDS[i];
+      const row = document.createElement("div");
+      row.className = "seed-row";
+      row.id = "seed-" + i;
+      row.innerHTML =
+        '<div class="sr-label">SEED ' + (i+1) + '</div>' +
+        '<div class="sr-title">' + esc(s) + '</div>' +
+        '<div class="sr-url">' + esc(slug(s)) + '</div>' +
+        '<div class="sr-meta"><span>source: seed list</span></div>';
+      grid.appendChild(row);
+      document.getElementById("seedCount").textContent = (i+1);
+      await sleep(700);
+      row.classList.add("queued");
+      await sleep(400);
+    }
+    showBusy(null);
+    setNextEnabled(true);
+  };
+
+  // =====================================================
+  // SCENE 1 — TASK QUEUE
+  // =====================================================
+  sceneActions[1] = async function(){
+    const body = document.getElementById("queueBody");
+    body.innerHTML = "";
+    document.getElementById("fqSize").textContent = "0";
+    document.getElementById("fqHead").textContent = "—";
+    setNextEnabled(false);
+    showBusy("pushing seeds onto queue…");
+    await sleep(600);
+
+    for(let i=0;i<SEEDS.length;i++){
+      const s = SEEDS[i];
+      const url = slug(s);
+      const tr = document.createElement("tr");
+      tr.className = "row-new";
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td class="url-cell">/' + esc(shortUrl(url)) + '</td>' +
+        '<td style="color:var(--text-faint);">seed</td>';
+      body.appendChild(tr);
+      document.getElementById("fqSize").textContent = (i+1);
+      if(i===0) document.getElementById("fqHead").textContent = "/" + shortUrl(url);
+      await sleep(650);
+    }
+    const firstRow = body.querySelector("tr");
+    if(firstRow) firstRow.classList.add("next-row");
+    showBusy(null);
+    setNextEnabled(true);
+  };
+
+  // =====================================================
+  // SCENE 2 — SINGLE WORKER TRACE
+  // =====================================================
+  sceneActions[2] = async function(){
+    const stages = document.querySelectorAll("#pipelineStrip .pstage");
+    stages.forEach(s=>{ s.classList.remove("active","done"); });
+    document.querySelectorAll("#pipelineStrip .parrow").forEach(a=>a.classList.remove("lit"));
+    document.getElementById("fetchPayload").innerHTML = '<span class="hint">waiting…</span>';
+    document.getElementById("parsePayload").innerHTML = '<span class="hint">waiting…</span>';
+    document.getElementById("indexPayload").innerHTML = '<span class="hint">waiting…</span>';
+    document.getElementById("donePayload").innerHTML = '<span class="hint">waiting…</span>';
+    ["fetch","parse","index","done"].forEach(k=>{
+      document.getElementById(k+"Timer").textContent = "—";
+      document.getElementById(k+"Foot").textContent = "not started";
+    });
+    document.getElementById("traceLog").innerHTML = '<div class="log-line t">click Continue to start →</div>';
+    document.getElementById("traceState").textContent = "IDLE";
+    document.getElementById("traceState").style.color = "var(--idle)";
+    document.getElementById("traceUrl").textContent = "—";
+    document.getElementById("traceDepth").textContent = "—";
+    document.getElementById("traceClock").textContent = "0.0s";
+    setNextEnabled(false);
+    showBusy("running worker cycle…");
+
+    const url = slug(SEEDS[0]);
+    const title = SEEDS[0];
+    let clock = 0;
+
+    function tlog(text, hl){
+      const el = document.getElementById("traceLog");
+      const div = document.createElement("div");
+      div.className = "log-line" + (hl ? " hl" : "");
+      div.innerHTML = '<span class="t">[' + clock.toFixed(2) + 's]</span> ' + text;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }
+    function tick(ms){
+      return new Promise(async resolve=>{
+        const steps = ms / 100;
+        for(let i=0;i<steps;i++){
+          await sleep(100);
+          clock += 0.1;
+          document.getElementById("traceClock").textContent = clock.toFixed(1) + "s";
+        }
+        resolve();
+      });
+    }
+
+    // FETCH
+    const fetchStage = document.querySelector('[data-stage="fetch"]');
+    fetchStage.classList.add("active");
+    document.getElementById("traceState").textContent = "FETCHING";
+    document.getElementById("traceState").style.color = "var(--amber)";
+    document.getElementById("traceUrl").textContent = "/" + shortUrl(url);
+    document.getElementById("fetchFoot").textContent = "GET " + shortUrl(url);
+    const fetchBytes = 80000+Math.floor(Math.random()*40000);
+    tlog("task picked up → " + shortUrl(url), true);
+    tlog("crawledCount.get() < maxPages → proceed");
+    tlog("Thread.sleep(1000) — crawler.politeness.delay");
+    document.getElementById("fetchPayload").innerHTML =
+      '<span class="k">politeness delay</span> 1000 ms before request…';
+    await tick(1000);
+    await sleep(300);
+    document.getElementById("fetchPayload").innerHTML =
+      '<span class="k">politeness delay</span> 1000 ms observed<br>' +
+      '<span class="k">Jsoup.connect</span>("https://' + shortUrl(url) + '")<br>' +
+      '<span class="k">.userAgent</span>("MiniSearchBot/1.0").<span class="k">timeout</span>(5000).get()<br>' +
+      '<span class="k">→</span> <span class="v">HTTP/1.1 200 OK</span><br>' +
+      '<span class="k">→</span> content-type: text/html<br>' +
+      '<span class="k">→</span> content-length: ' + fetchBytes + ' bytes';
+    await tick(2000);
+    document.getElementById("fetchTimer").textContent = "0." + (18+Math.floor(Math.random()*8)) + "s";
+    fetchStage.classList.remove("active");
+    fetchStage.classList.add("done");
+    document.querySelector('[data-parrow="1"]').classList.add("lit");
+    tlog("✓ fetched — " + fetchBytes + " bytes");
+    await sleep(500);
+
+    // PARSE
+    const parseStage = document.querySelector('[data-stage="parse"]');
+    parseStage.classList.add("active");
+    document.getElementById("traceState").textContent = "PARSING";
+    document.getElementById("traceState").style.color = "var(--blue)";
+    document.getElementById("parseFoot").textContent = "jsoupDoc.title() / select(\"div#mw-content-text\")";
+    tlog("title = jsoupDoc.title()");
+    tlog("content = doc.select(\"div#mw-content-text\").text()");
+    await sleep(300);
+    const anchorCount = 40 + Math.floor(Math.random()*20);
+    tlog("doc.select(\"a[href]\") → " + anchorCount + " anchors found");
+    await sleep(400);
+    const links = pickLinks(4, title);
+    const dupLinks = pickLinks(2, title);
+    let parseHtml = '<span class="k">shouldCrawl() filters:</span> Talk: · Template: · Category: · File: · other-lang wiki · action=edit/history · oldid=<br>' +
+      '<span class="k">' + anchorCount + ' anchors → after filtering</span><br>';
+    links.forEach(l=>{
+      parseHtml += '<span class="new-link">+ ' + esc(shortUrl(l)) + ' (visited.add)</span>';
+    });
+    dupLinks.forEach(l=>{
+      parseHtml += '<span class="dup-link">× ' + esc(shortUrl(l)) + ' (already visited)</span>';
+    });
+    document.getElementById("parsePayload").innerHTML = parseHtml;
+    await tick(2200);
+    document.getElementById("parseTimer").textContent = "0." + (22+Math.floor(Math.random()*10)) + "s";
+    parseStage.classList.remove("active");
+    parseStage.classList.add("done");
+    document.querySelector('[data-parrow="2"]').classList.add("lit");
+    tlog("✓ parsed — 4 new links, 2 dups skipped");
+    await sleep(500);
+
+    // INDEX
+    const indexStage = document.querySelector('[data-stage="index"]');
+    indexStage.classList.add("active");
+    document.getElementById("traceState").textContent = "INDEXING";
+    document.getElementById("traceState").style.color = "var(--green)";
+    document.getElementById("indexFoot").textContent = "indexerService.indexPage(url, title, content)";
+    tlog("indexerService.indexPage(url, title, content)");
+    await sleep(400);
+    const terms = ["java","language","programming","object","oriented","class","runtime","jvm","bytecode","compiler"];
+    const termCount = Math.floor(rand(400,900));
+    let indexHtml = '<span class="k">tokenize → ' + termCount + ' unique terms</span><br>';
+    terms.slice(0,5).forEach(t=>{
+      const tf = (1 + Math.random()*4).toFixed(1);
+      const idf = (1.2 + Math.random()*2).toFixed(2);
+      indexHtml += '<span class="v">' + t + '</span> tf=' + tf + ' idf=' + idf + ' score=' + (tf*idf).toFixed(2) + '<br>';
+    });
+    indexHtml += '<span class="hint">…+' + (termCount-5) + ' more</span><br>';
+    indexHtml += '<span class="k">@Transactional</span> saving Document + ' + termCount + ' IndexEntry rows (tfidf_score stored now)';
+    document.getElementById("indexPayload").innerHTML = indexHtml;
+    await tick(2400);
+    document.getElementById("indexTimer").textContent = "0." + (28+Math.floor(Math.random()*12)) + "s";
+    indexStage.classList.remove("active");
+    indexStage.classList.add("done");
+    document.querySelector('[data-parrow="3"]').classList.add("lit");
+    tlog("✓ indexed — " + termCount + " terms written to MySQL with pre-computed tfidf_score");
+    tlog("crawledCount.incrementAndGet()");
+    tlog("log.info(\"Crawled [1/500]: \" + shortUrl(url) + \"\")");
+    await sleep(500);
+
+    // DONE
+    const doneStage = document.querySelector('[data-stage="done"]');
+    doneStage.classList.add("active");
+    document.getElementById("traceState").textContent = "RETURNING TO POOL";
+    document.getElementById("traceState").style.color = "var(--green)";
+    document.getElementById("doneFoot").textContent = "thread → idle";
+    tlog("worker returning to idle state", true);
+    await sleep(400);
+    document.getElementById("donePayload").innerHTML =
+      '<span class="k">worker state:</span> <span class="v">IDLE</span><br>' +
+      '<span class="k">next action:</span> <span class="v">take() next task</span><br>' +
+      '<span class="k">blocking on:</span> <span class="v">empty task queue</span><br><br>' +
+      '<span class="hint">One full Runnable loop complete. Now imagine 9 more workers doing this in parallel.</span>';
+    await tick(2000);
+    document.getElementById("doneTimer").textContent = "0." + (5+Math.floor(Math.random()*5)) + "s";
+    doneStage.classList.remove("active");
+    doneStage.classList.add("done");
+    tlog("✓ cycle complete at " + clock.toFixed(1) + "s");
+    showBusy(null);
+    setNextEnabled(true);
+  };
+
+  // =====================================================
+  // SCENE 3 — THE POOL
+  // =====================================================
+  let poolState = null;
+  let poolInterval = null;
+  let poolRunning = false;
+
+  sceneActions[3] = function(){
+    buildPool();
+    startPool();
+  };
+
+  function buildPool(){
+    const grid = document.getElementById("workerGrid");
+    grid.innerHTML = "";
+    poolState = {
+      queued: SEEDS.map(t=>({ url: slug(t), from: "seed", title: t })),
+      visited: new Set(),
+      workers: [],
+      crawled: 0,
+      dup: 0,
+      terms: 0,
+      clock: 0,
+      completed: false
+    };
+    for(let i=0;i<NUM_WORKERS;i++){
+      poolState.workers.push({ id:i, state:"idle", url:null, stageStart:0, stageEnd:0, terms:0, task:null });
+    }
+    poolState.workers.forEach((w,i)=>{
+      const card = document.createElement("div");
+      card.className = "wcard";
+      card.dataset.state = "idle";
+      card.innerHTML =
+        '<div class="wc-head"><span class="wc-id">T-' + i + '</span><span class="wc-avatar">' + WORKER_EMOJIS[i] + '</span></div>' +
+        '<div class="wc-state">IDLE</div>' +
+        '<div class="wc-task"><span class="url">waiting…</span></div>' +
+        '<div class="wc-bar"><div class="wc-bar-fill"></div></div>' +
+        '<div class="wc-timer"><span class="wc-elapsed">—</span><span class="wc-dur">—</span></div>';
+      grid.appendChild(card);
+    });
+    document.getElementById("statCrawled").textContent = "0";
+    document.getElementById("statQueue").textContent = poolState.queued.length;
+    document.getElementById("statDup").textContent = "0";
+    document.getElementById("statTerms").textContent = "0";
+  }
+
+  function plog(cls, tag, body){
+    const el = document.getElementById("poolConsole");
+    if(!el) return;
+    const div = document.createElement("div");
+    div.innerHTML = '<span class="ts">[' + poolState.clock.toFixed(2) + 's]</span> <span class="' + cls + '">' + tag + '</span> <span class="body">' + body + '</span>';
+    el.appendChild(div);
+    while(el.children.length > 80) el.removeChild(el.firstChild);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function updateWorkerCard(w){
+    const card = document.querySelectorAll(".wcard")[w.id];
+    if(!card) return;
+    card.dataset.state = w.state;
+    card.querySelector(".wc-state").textContent = w.state.toUpperCase();
+    if(w.task){
+      card.querySelector(".wc-task").innerHTML = w.task;
+    } else {
+      card.querySelector(".wc-task").innerHTML = '<span class="url">waiting…</span>';
+    }
+    let pct = 0;
+    if(w.state !== "idle") pct = Math.max(0, Math.min(100, (poolState.clock - w.stageStart)/(w.stageEnd - w.stageStart) * 100));
+    card.querySelector(".wc-bar-fill").style.width = pct + "%";
+    if(w.state !== "idle"){
+      const elapsed = (poolState.clock - w.stageStart).toFixed(1);
+      const total = (w.stageEnd - w.stageStart).toFixed(1);
+      card.querySelector(".wc-elapsed").textContent = elapsed + "s";
+      card.querySelector(".wc-dur").textContent = "/ " + total + "s";
+    } else {
+      card.querySelector(".wc-elapsed").textContent = "—";
+      card.querySelector(".wc-dur").textContent = "—";
+    }
+  }
+
+  function poolClaim(w){
+    const s = poolState;
+    if(s.queued.length === 0 || !poolRunning) return;
+    if(s.crawled >= MAX_PAGES) return;
+    const item = s.queued.shift();
+    s.visited.add(item.url);
+    w.url = item.url;
+    w.state = "delaying";
+    w.stageStart = s.clock;
+    w.stageEnd = s.clock + POLITENESS_DELAY;
+    w.task = '<span class="url">/' + esc(shortUrl(item.url)) + '</span><span class="sub">politeness delay 1000ms</span>';
+    plog("tag-claim", "[T-"+w.id+"]", "task taken → /" + shortUrl(item.url) + " — Thread.sleep(1000)");
+    document.getElementById("statQueue").textContent = s.queued.length;
+    updateWorkerCard(w);
+  }
+
+  function poolAdvance(w){
+    const s = poolState;
+    if(w.state === "delaying"){
+      w.state = "fetching";
+      w.stageStart = s.clock;
+      w.stageEnd = s.clock + rand(1.2, 2.0);
+      w.task = '<span class="url">GET /' + esc(shortUrl(w.url)) + '</span><span class="sub">MiniSearchBot/1.0</span>';
+    } else if(w.state === "fetching"){
+      plog("tag-fetch", "[T-"+w.id+"]", "200 OK — " + (80000+Math.floor(Math.random()*40000)) + " bytes");
+      w.state = "parsing";
+      w.stageStart = s.clock;
+      w.stageEnd = s.clock + rand(0.6, 1.0);
+      w.task = '<span class="url">' + esc(shortUrl(w.url)) + '</span><span class="sub">extracting links…</span>';
+    } else if(w.state === "parsing"){
+      const title = w.url.replace("en.wikipedia.org/wiki/","").replace(/_/g," ");
+      const links = pickLinks(Math.floor(rand(2,5)), title);
+      let newCount = 0, dup = 0;
+      links.forEach(l=>{
+        const exists = [...s.queued].some(f=>f.url===l) || s.visited.has(l);
+        if(exists){ dup++; } else {
+          s.queued.push({ url: l, from: shortUrl(w.url), title: l.replace("en.wikipedia.org/wiki/","").replace(/_/g," ") });
+          newCount++;
+        }
+      });
+      s.dup += dup;
+      document.getElementById("statDup").textContent = s.dup;
+      document.getElementById("statQueue").textContent = s.queued.length;
+      plog("tag-parse", "[T-"+w.id+"]", newCount + " new links, " + dup + " dups skipped");
+      w.terms = Math.floor(rand(400, 900));
+      w.state = "indexing";
+      w.stageStart = s.clock;
+      w.stageEnd = s.clock + rand(0.7, 1.2);
+      w.task = '<span class="url">' + esc(shortUrl(w.url)) + '</span><span class="sub">TF-IDF → ' + w.terms + ' terms</span>';
+    } else if(w.state === "indexing"){
+      s.terms += w.terms;
+      document.getElementById("statTerms").textContent = s.terms;
+      plog("tag-index", "[T-"+w.id+"]", "@Transactional — saved Document + " + w.terms + " IndexEntry rows (tfidf_score stored)");
+      s.crawled++;
+      document.getElementById("statCrawled").textContent = s.crawled;
+      plog("tag-index", "[T-"+w.id+"]", "log.info: Crawled [" + s.crawled + "/" + MAX_PAGES + "]: /" + shortUrl(w.url));
+      w.state = "idle";
+      w.url = null; w.task = null; w.terms = 0;
+    }
+    updateWorkerCard(w);
+  }
+
+  function startPool(){
+    poolRunning = true;
+    plog("tag-done", "[pool]", "starting — 10 threads, 4 seed tasks, politeness delay 1000ms, cap " + MAX_PAGES + " pages");
+    poolInterval = setInterval(()=>{
+      if(!poolRunning){ clearInterval(poolInterval); return; }
+      poolState.clock += 0.1;
+      poolState.workers.forEach(w=>{
+        if(w.state === "idle") poolClaim(w);
+        else if(poolState.clock >= w.stageEnd) poolAdvance(w);
+        else updateWorkerCard(w);
+      });
+      if(!poolState.completed){
+        const allIdle = poolState.workers.every(w=>w.state === "idle");
+        const capped = poolState.crawled >= MAX_PAGES && allIdle;
+        if((poolState.queued.length === 0 && allIdle && poolState.crawled > 0) || capped){
+          poolState.completed = true;
+          poolRunning = false;
+          clearInterval(poolInterval);
+          plog("tag-done", "[pool]", (capped ? "✓ stopped at crawler.max.pages — " : "✓ crawl complete (queue drained) — ") + poolState.crawled + " pages, " + poolState.dup + " dups, " + poolState.terms + " terms");
+        }
+      }
+    }, 100);
+  }
+
+  // =====================================================
+  // SCENE 4 — SEARCH PIPELINE
+  // =====================================================
+  sceneActions[4] = async function(){
+    const nodes = document.querySelectorAll("#searchPipe .sp-node");
+    const arrows = document.querySelectorAll("#searchPipe .sp-arrow");
+    nodes.forEach(n=>n.classList.remove("active","done"));
+    arrows.forEach(a=>a.classList.remove("lit"));
+    const detail = document.getElementById("searchDetail");
+    detail.innerHTML = '<div class="head">Waiting</div>Click <b>Continue</b> in the bottom bar to run the query through this pipeline.';
+    setNextEnabled(false);
+    showBusy("running query…");
+    await sleep(700);
+
+    const q = pendingQuery || "java";
+    const tokens = [...new Set((q.toLowerCase().match(/[a-z0-9]+/g)||[]))].slice(0,6);
+    if(tokens.length === 0) tokens.push("search");
+
+    // 1
+    nodes[0].classList.add("active");
+    await sleep(600);
+    detail.innerHTML =
+      '<div class="head">1 · SearchService.tokenize()</div>' +
+      'Raw query: <span class="tok">' + esc(q) + '</span><br>' +
+      'Lowercased, split on non-alphanumerics, deduped →<br>' +
+      tokens.map(t=>'<span class="tok">' + esc(t) + '</span>').join("") +
+      '<br><span style="color:var(--text-faint);">returned String[] of ' + tokens.length + ' term(s)</span>';
+    await sleep(1800);
+    nodes[0].classList.remove("active"); nodes[0].classList.add("done");
+    arrows[0].classList.add("lit");
+
+    // 2
+    nodes[1].classList.add("active");
+    await sleep(500);
+    const postingsByToken = tokens.map(t=>{
+      const h = hashStr(t); const n = 3 + (h%4);
+      return { tok: t, n };
+    });
+    let totalPostings = postingsByToken.reduce((a,b)=>a+b.n,0);
+    let lookupHtml = '<div class="head">2 · IndexRepository.findByTerm() — one lookup per term</div>';
+    lookupHtml += '<div style="color:var(--text-faint); font-size:10.5px; margin-bottom:6px;">' + tokens.map(t=>"SELECT * FROM index_entries WHERE term = '"+esc(t)+"'").join("<br>") + '</div>';
+    lookupHtml += '<table><thead><tr><th>term</th><th>postings</th><th>docs</th></tr></thead><tbody>';
+    postingsByToken.forEach(p=>{
+      lookupHtml += '<tr><td>' + esc(p.tok) + '</td><td>' + p.n + '</td><td>' + (p.n*3) + '</td></tr>';
+    });
+    lookupHtml += '</tbody></table>';
+    lookupHtml += '<div style="margin-top:8px; color:var(--text-faint); font-size:10.5px;">Total: ' + totalPostings + ' postings retrieved via B-tree index on term · each row already carries its tfidf_score</div>';
+    detail.innerHTML = lookupHtml;
+    await sleep(2000);
+    nodes[1].classList.remove("active"); nodes[1].classList.add("done");
+    arrows[1].classList.add("lit");
+
+    // 3
+    nodes[2].classList.add("active");
+    await sleep(500);
+    const docScores = {};
+    tokens.forEach(tok=>{
+      const h = hashStr(tok); const n = 3 + (h%4);
+      for(let i=0;i<n;i++){
+        let idx = (h + i*13 + i*i*7) % CORPUS.length;
+        const title = CORPUS[idx];
+        const tf = 1 + ((h>>((i+2)%28))%6);
+        const idf = Math.round((0.6 + (((h>>((i+5)%28))%50)/50)*1.8)*100)/100;
+        const stored = Math.round(tf * idf * 100)/100;   // value written at crawl time
+        if(!docScores[title]) docScores[title] = { score: 0, contribs: [] };
+        docScores[title].score += stored;
+        docScores[title].contribs.push(tok + "=" + stored.toFixed(2));
+      }
+    });
+    const ranked = Object.entries(docScores).map(([t,d])=>({title:t, score: Math.round(d.score*100)/100, contribs: d.contribs})).sort((a,b)=>b.score-a.score);
+    let tfidfHtml = '<div class="head">3 · Score accumulation — nothing is recomputed here</div>';
+    tfidfHtml += '<div style="color:var(--text-faint); font-size:10.5px; margin-bottom:6px;">score(doc) = Σ tfidf_score(t, doc), read straight from index_entries. The tf × idf maths already happened at crawl time inside @Transactional — search just adds the stored values up.</div>';
+    tfidfHtml += '<div class="tok-key">' + tokens.map((t,i)=>'<span><i style="background:' + TOK_COLORS[i % TOK_COLORS.length] + '"></i>' + esc(t) + '</span>').join("") + '</div>';
+    tfidfHtml += '<table><thead><tr><th>document</th><th>score</th><th>stored scores, stacked by term</th></tr></thead><tbody>';
+    const maxScore = ranked[0].score;
+    ranked.slice(0,5).forEach((r, rowIdx)=>{
+      let segs = "";
+      r.contribs.forEach(c=>{
+        const tok = c.split("=")[0], val = parseFloat(c.split("=")[1]);
+        const ti = tokens.indexOf(tok);
+        const pct = (val / maxScore) * 100;
+        segs += '<i data-w="' + pct.toFixed(1) + '" style="background:' + TOK_COLORS[(ti<0?0:ti) % TOK_COLORS.length] + '" title="' + esc(tok) + ' = ' + val.toFixed(2) + '"></i>';
+      });
+      tfidfHtml += '<tr><td>' + esc(r.title) + '</td><td>' + r.score + '</td><td><span class="sbar">' + segs + '</span></td></tr>';
+    });
+    tfidfHtml += '</tbody></table>';
+    tfidfHtml += '<div style="margin-top:8px; color:var(--text-faint); font-size:10.5px;">' + ranked.length + ' unique documents accumulated · additive ranking across query terms</div>';
+    detail.innerHTML = tfidfHtml;
+    await sleep(60);
+    detail.querySelectorAll(".sbar i").forEach(seg=>{ seg.style.width = seg.dataset.w + "%"; });
+    await sleep(2200);
+    nodes[2].classList.remove("active"); nodes[2].classList.add("done");
+    arrows[2].classList.add("lit");
+
+    // 4
+    nodes[3].classList.add("active");
+    await sleep(500);
+    let sortHtml = '<div class="head">4 · Collections.sort + subList</div>';
+    sortHtml += 'Comparator: score DESC<br>';
+    sortHtml += 'Total results: <span class="tok">' + ranked.length + '</span> · Page 0 · size 10<br><br>';
+    sortHtml += '<div style="color:var(--text-faint); font-size:10.5px;">Returning top ' + Math.min(10, ranked.length) + ' of ' + ranked.length + '</div>';
+    detail.innerHTML = sortHtml;
+    await sleep(1500);
+    nodes[3].classList.remove("active"); nodes[3].classList.add("done");
+    arrows[3].classList.add("lit");
+
+    // 5
+    nodes[4].classList.add("active");
+    await sleep(500);
+    let lazyHtml = '<div class="head">5 · FetchType.LAZY — load only what\'s needed</div>';
+    lazyHtml += 'Before: <span style="color:var(--text-faint);">' + ranked.length + ' Document rows in memory (wasteful)</span><br>';
+    lazyHtml += 'After: <span style="color:var(--green);">' + Math.min(10, ranked.length) + ' Document rows loaded</span><br><br>';
+    lazyHtml += '<div style="color:var(--text-faint); font-size:10.5px;">Each Document fetched with title + url + snippet only. Content column stays lazy until needed.</div>';
+    detail.innerHTML = lazyHtml;
+    await sleep(1600);
+    nodes[4].classList.remove("active"); nodes[4].classList.add("done");
+    arrows[4].classList.add("lit");
+
+    // 6
+    nodes[5].classList.add("active");
+    await sleep(500);
+    const top5 = ranked.slice(0,5);
+    const summary = '"' + q + '" relates most closely to ' + top5.map(d=>d.title).join(", ") + ' in the indexed corpus — ranked highest by combined TF-IDF across the matched terms.';
+    let groqHtml = '<div class="head">6 · Groq summarize (RAG)</div>';
+    groqHtml += 'POST https://api.groq.com/openai/v1/chat/completions<br>';
+    groqHtml += 'model: openai/gpt-oss-20b · max_tokens: 400<br><br>';
+    groqHtml += '<div style="color:var(--text-faint); font-size:10.5px; margin-bottom:6px;">Context sent (top 5 snippets):</div>';
+    top5.forEach(d=>{
+      groqHtml += '<div style="padding:3px 0; font-size:10.5px; color:var(--text-dim);">· ' + esc(d.title) + '</div>';
+    });
+    groqHtml += '<div style="margin-top:10px; padding:10px; background:#F5F8FC; border-radius:6px; font-size:12px; color:var(--text); line-height:1.6;">' + esc(summary) + '</div>';
+    detail.innerHTML = groqHtml;
+    await sleep(2400);
+    nodes[5].classList.remove("active"); nodes[5].classList.add("done");
+
+    buildResults(q, summary, ranked);
+    showBusy(null);
+    setNextEnabled(true);
+  };
+
+  // =====================================================
+  // SCENE 5 — RESULTS
+  // =====================================================
+  let builtResults = null;
+  sceneActions[5] = function(){
+    renderResults();
+  };
+
+  function buildResults(query, summary, ranked){
+    const docs = ranked.slice(0,10).map(r=>{
+      const h = hashStr(r.title);
+      const tails = ["covering core concepts and common implementation patterns.","with worked examples and typical edge cases.","including how it's used in production systems.","with a focus on performance characteristics and trade-offs."];
+      return {
+        title: r.title,
+        url: slug(r.title),
+        score: r.score,
+        snippet: "Indexed overview of " + r.title.toLowerCase() + " — matched on the query terms, " + tails[h%tails.length]
+      };
+    });
+    builtResults = { query, summary, docs, total: ranked.length };
+  }
+
+  function renderResults(){
+    if(!builtResults) return;
+    const {query, summary, docs, total} = builtResults;
+    document.getElementById("resultsMeta").textContent = "About " + total + " result" + (total===1?"":"s") + " for \u201c" + query + "\u201d";
+    streamSummary(summary, docs.slice(0,5));
+    let html = "";
+    docs.forEach((d,i)=>{
+      html += '<div class="result-item" style="animation-delay:' + (i*0.07) + 's"><a class="title" href="#">' + esc(d.title) + '</a><div class="url">' + esc(d.url) + '</div><div class="snippet">' + esc(d.snippet) + ' <span class="score">score ' + d.score + '</span></div></div>';
+    });
+    document.getElementById("resultsList").innerHTML = html;
+  }
+
+
+  const TOK_COLORS = ["#5AA9E6","#E3A63E","#6FBF8B","#9B7EDE","#E86A5E","#2B4C7E"];
+
+  // ---------- AI OVERVIEW STREAMING ----------
+  let streamTimer = null;
+  function streamSummary(summary, sources){
+    const host = document.getElementById("aiOverview");
+    if(!host) return;
+    if(streamTimer){ clearInterval(streamTimer); streamTimer = null; }
+    const chips = sources.map(d=>'<span class="src-chip">' + esc(d.title) + '</span>').join("");
+    const tail = '<div class="src-strip">' + chips + '</div>' +
+      '<div class="src-note">Grounded in these ' + sources.length + ' indexed pages only — the model is given their snippets as context and told not to go beyond them.</div>';
+    host.innerHTML = '<div class="label">AI Overview <span class="ai-badge">Groq</span></div><p id="aiText"></p>';
+    const target = document.getElementById("aiText");
+    if(reduced){
+      target.textContent = summary;
+      host.insertAdjacentHTML("beforeend", tail);
+      return;
+    }
+    const words = summary.split(" ");
+    let i = 0;
+    streamTimer = setInterval(()=>{
+      i++;
+      target.innerHTML = esc(words.slice(0, i).join(" ")) + (i < words.length ? '<span class="ai-caret"></span>' : "");
+      if(i >= words.length){
+        clearInterval(streamTimer); streamTimer = null;
+        host.insertAdjacentHTML("beforeend", tail);
+      }
+    }, 45);
+  }
+
+  // ---------- RESET ----------
+  function resetAll(){
+    if(poolInterval) clearInterval(poolInterval);
+    if(streamTimer){ clearInterval(streamTimer); streamTimer = null; }
+    poolRunning = false;
+    builtResults = null;
+    document.getElementById("resultsList").innerHTML = "";
+    document.getElementById("resultsMeta").textContent = "";
+    document.getElementById("aiOverview").innerHTML = "";
+    document.getElementById("workerGrid").innerHTML = "";
+    document.getElementById("queueBody").innerHTML = "";
+    document.getElementById("seedGrid").innerHTML = "";
+    document.getElementById("traceLog").innerHTML = '<div class="log-line t">click Continue to start →</div>';
+    document.getElementById("searchDetail").innerHTML = '<div class="head">Waiting</div>Click <b>Continue</b> to run the query through this pipeline.';
+    document.querySelectorAll("#searchPipe .sp-node").forEach(n=>n.classList.remove("active","done"));
+    document.querySelectorAll("#searchPipe .sp-arrow").forEach(a=>a.classList.remove("lit"));
+    document.querySelectorAll("#pipelineStrip .pstage").forEach(s=>s.classList.remove("active","done"));
+    document.querySelectorAll("#pipelineStrip .parrow").forEach(a=>a.classList.remove("lit"));
+    showBusy(null);
+  }
+
+  updateProgress();
+})();
+</script>
+</body>
+</html>

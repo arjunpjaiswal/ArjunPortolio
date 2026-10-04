@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL QueryBuilder — Sandbox</title>
+<style>
+  :root{
+    --bg:#0E1116;
+    --panel:#161A22;
+    --panel-alt:#1B202A;
+    --border:#262C38;
+    --text:#E7E9EE;
+    --text-dim:#8A93A6;
+    --text-faint:#5B6375;
+    --accent:#E8A33D;
+    --accent-soft:rgba(232,163,61,0.14);
+    --mint:#5FB894;
+    --mint-soft:rgba(95,184,148,0.14);
+    --danger:#E1636B;
+    --danger-soft:rgba(225,99,107,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    min-height:100vh;
+  }
+  code, .mono, textarea, .sql-block, table, .cell-val, .pill-mode{
+    font-family:'JetBrains Mono','SFMono-Regular',Consolas,Menlo,monospace;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 28px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex; align-items:baseline; gap:12px;}
+  .brand h1{
+    font-size:19px; font-weight:600; margin:0; letter-spacing:0.2px;
+  }
+  .brand .caret{
+    display:inline-block; width:9px; height:16px; background:var(--accent);
+    animation:blink 1.1s steps(1) infinite; vertical-align:-2px;
+  }
+  @keyframes blink{ 50%{opacity:0;} }
+  .brand .sub{color:var(--text-dim); font-size:13px;}
+  .header-actions{display:flex; gap:10px; align-items:center;}
+  button.ghost{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer;
+    font-family:inherit; transition:border-color .15s, color .15s;
+  }
+  button.ghost:hover{ border-color:var(--danger); color:var(--danger); }
+
+  /* ---------- layout ---------- */
+  .layout{
+    display:grid; grid-template-columns:minmax(320px,420px) 1fr;
+    gap:0; min-height:calc(100vh - 68px);
+  }
+  @media (max-width:860px){ .layout{grid-template-columns:1fr;} }
+
+  .pane{ padding:20px 24px; }
+  .pane-left{ border-right:1px solid var(--border); }
+  .pane-left, .pane-right{ display:flex; flex-direction:column; gap:16px; }
+
+  .label{
+    font-size:11.5px; color:var(--text-faint); letter-spacing:.03em; margin-bottom:8px;
+  }
+
+  /* ---------- mode pills ---------- */
+  .pill-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .pill-mode{
+    padding:6px 12px; border-radius:5px; font-size:12.5px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel-alt); color:var(--text-dim);
+    transition:all .15s;
+  }
+  .pill-mode.active{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+
+  .example-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .pill-ex{
+    padding:5px 10px; border-radius:999px; font-size:12px; cursor:pointer;
+    border:1px solid var(--border); background:transparent; color:var(--text-dim);
+    transition:all .15s;
+  }
+  .pill-ex:hover{ border-color:var(--mint); color:var(--mint); }
+
+  /* ---------- editor ---------- */
+  .editor-wrap{
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    overflow:hidden; display:flex; flex-direction:column; flex:1; min-height:260px;
+  }
+  .editor-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 12px; border-bottom:1px solid var(--border); background:var(--panel-alt);
+  }
+  .editor-bar .dots{display:flex; gap:6px;}
+  .editor-bar .dots span{width:8px;height:8px;border-radius:50%; background:var(--border);}
+  .editor-bar .file{color:var(--text-faint); font-size:11.5px;}
+  textarea#editor{
+    flex:1; resize:none; background:transparent; border:none; outline:none;
+    color:var(--text); font-size:13.5px; line-height:1.65; padding:16px;
+    tab-size:2; min-height:220px;
+  }
+  textarea#editor::selection{ background:var(--accent-soft); }
+
+  .run-row{display:flex; gap:10px; align-items:center;}
+  button.run{
+    background:var(--accent); color:#1A1305; border:none; padding:10px 18px;
+    border-radius:6px; font-weight:600; font-size:13.5px; cursor:pointer;
+    display:flex; align-items:center; gap:8px; font-family:inherit;
+    transition:filter .15s;
+  }
+  button.run:hover{ filter:brightness(1.08); }
+  button.run svg{width:11px;height:11px;}
+  .run-hint{color:var(--text-faint); font-size:11.5px;}
+
+  /* ---------- schema mini ref ---------- */
+  .schema{
+    border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--panel);
+  }
+  .schema h4{margin:0 0 10px; font-size:12px; color:var(--text-dim); font-weight:500;}
+  .schema-tables{display:flex; flex-direction:column; gap:6px;}
+  .schema-row{display:flex; gap:8px; font-size:12px; align-items:baseline;}
+  .schema-row .t{ color:var(--mint); min-width:64px; font-family:'JetBrains Mono',monospace; }
+  .schema-row .c{ color:var(--text-faint); }
+
+  /* ---------- tabs (right pane) ---------- */
+  .tab-row{display:flex; gap:2px; border-bottom:1px solid var(--border);}
+  .tab{
+    padding:9px 16px; font-size:13px; cursor:pointer; color:var(--text-dim);
+    border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab.active{ color:var(--text); border-bottom-color:var(--accent); }
+  .tab-content{ display:none; flex:1; flex-direction:column; gap:12px; }
+  .tab-content.active{ display:flex; }
+
+  .sql-block{
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:16px; font-size:13.5px; line-height:1.7; color:var(--mint);
+    white-space:pre-wrap; word-break:break-word; min-height:56px;
+  }
+  .sql-block.empty{ color:var(--text-faint); }
+
+  .result-meta{ color:var(--text-faint); font-size:12px; }
+  .table-wrap{
+    border:1px solid var(--border); border-radius:8px; overflow:auto; max-height:420px;
+  }
+  table.result{ border-collapse:collapse; width:100%; font-size:12.5px; }
+  table.result th{
+    background:var(--panel-alt); color:var(--text-dim); text-align:left;
+    padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap;
+    position:sticky; top:0;
+  }
+  table.result td{
+    padding:8px 12px; border-bottom:1px solid var(--border); color:var(--text);
+    white-space:nowrap;
+  }
+  table.result tr:last-child td{ border-bottom:none; }
+  table.result tr:hover td{ background:var(--panel-alt); }
+  .null-val{ color:var(--text-faint); font-style:italic; }
+
+  .msg-box{
+    border-radius:8px; padding:14px 16px; font-size:13.5px; border:1px solid var(--border);
+  }
+  .msg-box.ok{ background:var(--mint-soft); border-color:rgba(95,184,148,.4); color:var(--mint); }
+  .msg-box.err{ background:var(--danger-soft); border-color:rgba(225,99,107,.4); color:var(--danger); }
+  .msg-box.info{ color:var(--text-dim); }
+
+  .console{
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:14px 16px; font-size:12.5px; line-height:1.8; min-height:120px; flex:1;
+    overflow:auto; max-height:460px;
+  }
+  .console .line{ color:var(--text-dim); }
+  .console .line.err{ color:var(--danger); }
+  .console .line.ok{ color:var(--mint); }
+  .console .ts{ color:var(--text-faint); margin-right:8px; }
+
+  .db-tables{ display:flex; flex-direction:column; gap:18px; overflow:auto; }
+  .db-table h3{
+    margin:0 0 8px; font-size:13px; color:var(--text-dim); font-weight:500;
+    display:flex; align-items:center; gap:8px;
+  }
+  .db-table h3 .count{ color:var(--text-faint); font-weight:400; font-size:11.5px; }
+
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:5px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>SQL QueryBuilder<span class="caret"></span></h1>
+    <span class="sub">write the builder chain, run it, watch the SQL and the rows come out</span>
+  </div>
+  <div class="header-actions">
+    <button class="ghost" id="resetDbBtn">Reset mock DB</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: editor -->
+  <div class="pane pane-left">
+    <div>
+      <div class="label">builder type</div>
+      <div class="pill-row" id="modePills">
+        <div class="pill-mode active" data-mode="select">SelectQueryBuilder</div>
+        <div class="pill-mode" data-mode="insert">InsertQueryBuilder</div>
+        <div class="pill-mode" data-mode="update">UpdateQueryBuilder</div>
+        <div class="pill-mode" data-mode="delete">DeleteQueryBuilder</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label">load an example</div>
+      <div class="example-row" id="exampleRow"></div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor-bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="file">query.js — evaluates to a builder instance</div>
+      </div>
+      <textarea id="editor" spellcheck="false"></textarea>
+    </div>
+
+    <div class="run-row">
+      <button class="run" id="runBtn">
+        <svg viewBox="0 0 12 12" fill="currentColor"><path d="M1 0.5 L11 6 L1 11.5 Z"/></svg>
+        Run
+      </button>
+      <span class="run-hint">the sandbox calls <code>.build()</code> for you — don't call it yourself</span>
+    </div>
+
+    <div class="schema">
+      <h4>mock schema</h4>
+      <div class="schema-tables">
+        <div class="schema-row"><span class="t">users</span><span class="c">id, name, email, age, city</span></div>
+        <div class="schema-row"><span class="t">products</span><span class="c">id, name, category, price, stock</span></div>
+        <div class="schema-row"><span class="t">orders</span><span class="c">id, user_id, product_id, qty, total_price, order_date</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: output -->
+  <div class="pane pane-right">
+    <div class="tab-row" id="tabRow">
+      <div class="tab active" data-tab="sql">Generated SQL</div>
+      <div class="tab" data-tab="result">Result</div>
+      <div class="tab" data-tab="db">Mock Tables</div>
+      <div class="tab" data-tab="console">Console</div>
+    </div>
+
+    <div class="tab-content active" id="tab-sql">
+      <div class="label">what <code>.build()</code> returns</div>
+      <div class="sql-block empty" id="sqlOutput">— run a query to see the generated SQL —</div>
+    </div>
+
+    <div class="tab-content" id="tab-result">
+      <div class="result-meta" id="resultMeta"></div>
+      <div id="resultArea"></div>
+    </div>
+
+    <div class="tab-content" id="tab-db">
+      <div class="db-tables" id="dbTables"></div>
+    </div>
+
+    <div class="tab-content" id="tab-console">
+      <div class="console" id="consoleArea"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ======================================================================
+   MOCK DATABASE
+   ====================================================================== */
+const SEED = {
+  users: [
+    {id:1, name:"Aditi Rao",   email:"aditi.rao@example.com",   age:29, city:"Mumbai"},
+    {id:2, name:"Rohan Mehta", email:"rohan.mehta@example.com", age:24, city:"Pune"},
+    {id:3, name:"Sneha Iyer",  email:"sneha.iyer@example.com",  age:31, city:"Bengaluru"},
+    {id:4, name:"Kabir Shah",  email:"kabir.shah@example.com",  age:22, city:"Mumbai"},
+    {id:5, name:"Priya Nair",  email:"priya.nair@example.com",  age:27, city:"Delhi"},
+    {id:6, name:"Meera Joshi", email:"meera.joshi@example.com", age:26, city:"Mumbai"}
+  ],
+  products: [
+    {id:1, name:"Smartphone X",        category:"Electronics", price:24999, stock:40},
+    {id:2, name:"Wireless Earbuds",    category:"Electronics", price:2999,  stock:120},
+    {id:3, name:"Office Chair",        category:"Furniture",   price:8999,  stock:15},
+    {id:4, name:"Standing Desk",       category:"Furniture",   price:15999, stock:8},
+    {id:5, name:"Mechanical Keyboard", category:"Electronics", price:5499,  stock:60}
+  ],
+  orders: [
+    {id:1, user_id:1, product_id:1, qty:1, total_price:24999, order_date:"2026-01-12"},
+    {id:2, user_id:1, product_id:2, qty:2, total_price:5998,  order_date:"2026-02-03"},
+    {id:3, user_id:2, product_id:3, qty:1, total_price:8999,  order_date:"2026-01-20"},
+    {id:4, user_id:3, product_id:1, qty:1, total_price:24999, order_date:"2026-03-01"},
+    {id:5, user_id:3, product_id:5, qty:1, total_price:5499,  order_date:"2026-03-15"},
+    {id:6, user_id:4, product_id:2, qty:1, total_price:2999,  order_date:"2026-02-10"},
+    {id:7, user_id:5, product_id:4, qty:1, total_price:15999, order_date:"2026-04-02"},
+    {id:8, user_id:1, product_id:5, qty:1, total_price:5499,  order_date:"2026-04-10"}
+  ]
+};
+let db = JSON.parse(JSON.stringify(SEED));
+
+/* ======================================================================
+   BUILDER CLASSES (mirrors the real Java fluent API)
+   ====================================================================== */
+class SelectQueryBuilder {
+  constructor(){
+    this._select=["*"]; this._from=null; this._joins=[]; this._where=null; this._whereParams=[];
+    this._ands=[]; this._groupBy=[]; this._having=null; this._orderBy=null; this._orderDir="ASC";
+    this._limit=null; this._offset=null; this._distinct=false;
+  }
+  select(...cols){ this._select = cols.length? cols : ["*"]; return this; }
+  distinct(){ this._distinct = true; return this; }
+  from(t){ this._from = t; return this; }
+  innerJoin(table,on){ this._joins.push({type:"INNER JOIN", table, on}); return this; }
+  leftJoin(table,on){ this._joins.push({type:"LEFT JOIN", table, on}); return this; }
+  where(cond, ...params){ this._where = cond; this._whereParams = params; return this; }
+  and(cond, ...params){ this._ands.push({cond, params}); return this; }
+  groupBy(...cols){ this._groupBy = cols; return this; }
+  having(cond){ this._having = cond; return this; }
+  orderBy(col, dir="ASC"){ this._orderBy = col; this._orderDir = dir.toUpperCase(); return this; }
+  limit(n){ this._limit = n; return this; }
+  offset(n){ this._offset = n; return this; }
+  reset(){ Object.assign(this, new SelectQueryBuilder()); return this; }
+  build(){
+    if(!this._from) throw new Error("IllegalStateException: SELECT requires from(table)");
+    let sql = "SELECT " + (this._distinct? "DISTINCT ":"") + this._select.join(", ") + " FROM " + this._from;
+    this._joins.forEach(j=> sql += " " + j.type + " " + j.table + " ON " + j.on);
+    if(this._where){
+      sql += " WHERE " + this._where;
+      this._ands.forEach(a=> sql += " AND " + a.cond);
+    }
+    if(this._groupBy.length) sql += " GROUP BY " + this._groupBy.join(", ");
+    if(this._having) sql += " HAVING " + this._having;
+    if(this._orderBy) sql += " ORDER BY " + this._orderBy + " " + this._orderDir;
+    if(this._limit!=null) sql += " LIMIT " + this._limit;
+    if(this._offset!=null) sql += " OFFSET " + this._offset;
+    return sql;
+  }
+}
+
+class InsertQueryBuilder {
+  constructor(){ this._table=null; this._sets=[]; }
+  into(t){ this._table = t; return this; }
+  set(col, val){ this._sets.push({col, val}); return this; }
+  getValues(){ return this._sets.map(s=>s.val); }
+  build(){
+    if(!this._table) throw new Error("IllegalStateException: INSERT requires into(table)");
+    if(!this._sets.length) throw new Error("IllegalStateException: INSERT requires at least one set(col, val)");
+    const cols = this._sets.map(s=>s.col).join(", ");
+    const ph = this._sets.map(()=>"?").join(", ");
+    return "INSERT INTO " + this._table + " (" + cols + ") VALUES (" + ph + ")";
+  }
+}
+
+class UpdateQueryBuilder {
+  constructor(){ this._table=null; this._sets=[]; this._where=null; this._whereParams=[]; }
+  update(t){ this._table = t; return this; }
+  set(col, val){ this._sets.push({col, val}); return this; }
+  where(cond, ...params){ this._where = cond; this._whereParams = params; return this; }
+  getValues(){ return this._sets.map(s=>s.val).concat(this._whereParams); }
+  build(){
+    if(!this._table) throw new Error("IllegalStateException: UPDATE requires update(table)");
+    if(!this._sets.length) throw new Error("IllegalStateException: UPDATE requires at least one set(col, val)");
+    if(!this._where) throw new Error("IllegalStateException: UPDATE without a WHERE clause is not allowed");
+    const sets = this._sets.map(s=> s.col + " = ?").join(", ");
+    return "UPDATE " + this._table + " SET " + sets + " WHERE " + this._where;
+  }
+}
+
+class DeleteQueryBuilder {
+  constructor(){ this._table=null; this._where=null; this._whereParams=[]; }
+  from(t){ this._table = t; return this; }
+  where(cond, ...params){ this._where = cond; this._whereParams = params; return this; }
+  build(){
+    if(!this._table) throw new Error("IllegalStateException: DELETE requires from(table)");
+    if(!this._where) throw new Error("IllegalStateException: DELETE without a WHERE clause is not allowed");
+    return "DELETE FROM " + this._table + " WHERE " + this._where;
+  }
+}
+
+/* ======================================================================
+   CONDITION EVALUATION ENGINE
+   (turns SQL-ish condition strings into literal-substituted JS and evals)
+   ====================================================================== */
+const KEYWORDS = new Set(["AND","OR","LIKE","NOT","IN","IS","NULL","TRUE","FALSE","ASC","DESC","SUM","COUNT","AVG","MIN","MAX"]);
+
+function resolveToken(tok, ctx){
+  tok = tok.trim();
+  if(ctx.__isJoined){
+    if(tok.includes(".")){ const [a,c]=tok.split("."); return ctx.aliases[a] ? ctx.aliases[a][c] : undefined; }
+    return ctx.flat[tok];
+  }
+  if(tok.includes(".")){ const p = tok.split("."); return ctx[p[p.length-1]]; }
+  return ctx[tok];
+}
+
+function substituteColumns(str, ctx){
+  const parts = str.split(/('[^']*')/g);
+  for(let i=0;i<parts.length;i+=2){
+    parts[i] = parts[i].replace(/\b[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?\b/g, (tok)=>{
+      if(KEYWORDS.has(tok.toUpperCase())) return tok;
+      const val = resolveToken(tok, ctx);
+      return JSON.stringify(val===undefined ? null : val);
+    });
+  }
+  return parts.join("");
+}
+
+function substitutePlaceholders(str, params){
+  let i=0;
+  return str.replace(/\?/g, ()=> JSON.stringify(params[i++] === undefined ? null : params[i-1]));
+}
+
+function likeFn(str, pattern){
+  if(str===null || str===undefined) return false;
+  const esc = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/%/g,".*").replace(/_/g,".");
+  return new RegExp("^"+esc+"$","i").test(String(str));
+}
+
+function convertLike(s){
+  return s.replace(/("(?:\\.|[^"\\])*")\s+LIKE\s+(?:'([^']*)'|("(?:\\.|[^"\\])*"))/gi, (m, lhs, singleP, doubleP)=>{
+    const pattern = singleP!==undefined ? singleP : JSON.parse(doubleP);
+    return "__like(" + lhs + ", " + JSON.stringify(pattern) + ")";
+  });
+}
+
+function convertOperators(s){
+  s = s.replace(/<>/g, "!==");
+  s = s.replace(/(?<![<>=!])=(?!=)/g, "===");
+  s = s.replace(/\bAND\b/gi, "&&");
+  s = s.replace(/\bOR\b/gi, "||");
+  return s;
+}
+
+function evalCondition(condStr, params, ctx){
+  let s = substituteColumns(condStr, ctx);
+  s = substitutePlaceholders(s, params || []);
+  s = convertLike(s);
+  s = convertOperators(s);
+  try{
+    return !!(new Function("__like", "return (" + s + ")"))(likeFn);
+  }catch(e){
+    throw new Error('Could not evaluate condition "' + condStr + '": ' + e.message);
+  }
+}
+
+function computeAggregate(fn, inner, groupRows){
+  fn = fn.toUpperCase(); inner = inner.trim();
+  if(fn==="COUNT"){
+    if(inner==="*") return groupRows.length;
+    return groupRows.filter(r=>{ const v = resolveToken(inner, r); return v!==undefined && v!==null; }).length;
+  }
+  const vals = groupRows.map(r=> Number(resolveToken(inner, r))).filter(v=> !isNaN(v));
+  if(fn==="SUM") return vals.reduce((a,b)=>a+b, 0);
+  if(fn==="AVG") return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+  if(fn==="MAX") return vals.length ? Math.max(...vals) : 0;
+  if(fn==="MIN") return vals.length ? Math.min(...vals) : 0;
+  return 0;
+}
+
+function substituteAggregates(str, groupRows){
+  return str.replace(/\b(SUM|COUNT|AVG|MIN|MAX)\s*\(\s*([^)]*?)\s*\)/gi, (m, fn, inner)=>
+    String(computeAggregate(fn, inner, groupRows)));
+}
+
+function parseTableAlias(str){
+  const parts = str.trim().split(/\s+/);
+  return { table: parts[0], alias: parts[1] || parts[0] };
+}
+
+function parseSelectExpr(raw){
+  const m = raw.split(/\s+AS\s+/i);
+  const expr = m[0].trim();
+  let label = m[1] ? m[1].trim() : null;
+  if(!label){
+    label = /^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*$/.test(expr) ? expr.split(".").pop() : expr;
+  }
+  return { expr, label };
+}
+
+/* ======================================================================
+   MOCK EXECUTION
+   ====================================================================== */
+function runSelect(qb){
+  const { table, alias } = parseTableAlias(qb._from);
+  if(!db[table]) throw new Error("Unknown table: " + table);
+  let rows = db[table].map(r => ({ __isJoined:true, flat:{...r}, aliases:{ [alias]: r } }));
+
+  qb._joins.forEach(j=>{
+    const { table: jt, alias: ja } = parseTableAlias(j.table);
+    if(!db[jt]) throw new Error("Unknown table: " + jt);
+    const next = [];
+    rows.forEach(base=>{
+      let matched = false;
+      db[jt].forEach(jr=>{
+        const trial = { __isJoined:true, flat:{...base.flat, ...jr}, aliases:{...base.aliases, [ja]: jr} };
+        if(evalCondition(j.on, [], trial)){ matched = true; next.push(trial); }
+      });
+      if(!matched && j.type==="LEFT JOIN"){
+        const shape = db[jt][0] || {};
+        const nulls = Object.fromEntries(Object.keys(shape).map(k=>[k,null]));
+        next.push({ __isJoined:true, flat:{...base.flat, ...nulls}, aliases:{...base.aliases, [ja]: nulls} });
+      }
+    });
+    rows = next;
+  });
+
+  if(qb._where) rows = rows.filter(r => evalCondition(qb._where, qb._whereParams, r));
+  qb._ands.forEach(a=>{ rows = rows.filter(r => evalCondition(a.cond, a.params, r)); });
+
+  let resultRows, columns;
+  const hasAggregate = qb._select.some(c => /(SUM|COUNT|AVG|MIN|MAX)\s*\(/i.test(c));
+
+  if(qb._groupBy.length || hasAggregate){
+    const groupKeys = qb._groupBy.length ? qb._groupBy : ["__all__"];
+    const groups = new Map();
+    rows.forEach(r=>{
+      const key = groupKeys.map(k => k==="__all__" ? "1" : JSON.stringify(resolveToken(k, r))).join("|");
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    });
+    resultRows = []; columns = [];
+    for(const groupRows of groups.values()){
+      const rep = groupRows[0];
+      const out = {};
+      qb._select.forEach(colExpr=>{
+        const { expr, label } = parseSelectExpr(colExpr);
+        const aggMatch = expr.match(/^(SUM|COUNT|AVG|MIN|MAX)\s*\(\s*(.*?)\s*\)$/i);
+        out[label] = aggMatch ? computeAggregate(aggMatch[1], aggMatch[2], groupRows)
+                               : (expr==="*" ? undefined : resolveToken(expr, rep));
+      });
+      if(qb._having){
+        const literalHaving = substituteAggregates(qb._having, groupRows);
+        if(!evalCondition(literalHaving, [], rep)) continue;
+      }
+      resultRows.push(out);
+      if(!columns.length) columns = Object.keys(out);
+    }
+  } else {
+    resultRows = rows.map(r=>{
+      if(qb._select.length===1 && qb._select[0].trim()==="*") return {...r.flat};
+      const out = {};
+      qb._select.forEach(colExpr=>{
+        const { expr, label } = parseSelectExpr(colExpr);
+        out[label] = resolveToken(expr, r);
+      });
+      return out;
+    });
+    columns = resultRows[0] ? Object.keys(resultRows[0])
+            : (qb._select[0].trim()==="*" ? (db[table][0]? Object.keys(db[table][0]) : []) : qb._select.map(c=>parseSelectExpr(c).label));
+  }
+
+  if(qb._orderBy){
+    const col = qb._orderBy;
+    resultRows.sort((a,b)=>{
+      const va = a[col], vb = b[col];
+      if(va===vb) return 0;
+      if(va===undefined) return 1;
+      if(vb===undefined) return -1;
+      return (va < vb ? -1 : 1) * (qb._orderDir==="DESC" ? -1 : 1);
+    });
+  }
+  if(qb._distinct){
+    const seen = new Set();
+    resultRows = resultRows.filter(r=>{ const k=JSON.stringify(r); if(seen.has(k)) return false; seen.add(k); return true; });
+  }
+  if(qb._offset) resultRows = resultRows.slice(qb._offset);
+  if(qb._limit!=null) resultRows = resultRows.slice(0, qb._limit);
+
+  return { columns: columns.length? columns : (resultRows[0]? Object.keys(resultRows[0]) : []), rows: resultRows };
+}
+
+function runInsert(qb){
+  const table = qb._table;
+  if(!db[table]) throw new Error("Unknown table: " + table);
+  const row = {};
+  qb._sets.forEach(s => row[s.col] = s.val);
+  if(!("id" in row)){
+    const maxId = db[table].reduce((m,r)=> Math.max(m, r.id||0), 0);
+    row.id = maxId + 1;
+    const ordered = { id: row.id };
+    Object.keys(row).forEach(k=>{ if(k!=="id") ordered[k]=row[k]; });
+    db[table].push(ordered);
+    return { insertedId: row.id, row: ordered };
+  }
+  db[table].push(row);
+  return { insertedId: row.id, row };
+}
+
+function runUpdate(qb){
+  const table = qb._table;
+  if(!db[table]) throw new Error("Unknown table: " + table);
+  let count = 0;
+  db[table].forEach(r=>{
+    const ctx = { __isJoined:true, flat:{...r}, aliases:{ [table]: r } };
+    if(evalCondition(qb._where, qb._whereParams, ctx)){
+      qb._sets.forEach(s => r[s.col] = s.val);
+      count++;
+    }
+  });
+  return { updatedCount: count };
+}
+
+function runDelete(qb){
+  const table = qb._table;
+  if(!db[table]) throw new Error("Unknown table: " + table);
+  const before = db[table].length;
+  db[table] = db[table].filter(r=>{
+    const ctx = { __isJoined:true, flat:{...r}, aliases:{ [table]: r } };
+    return !evalCondition(qb._where, qb._whereParams, ctx);
+  });
+  return { deletedCount: before - db[table].length };
+}
+
+/* ======================================================================
+   EXAMPLES
+   ====================================================================== */
+const EXAMPLES = [
+  { label:"Filter + sort", mode:"select", code:
+`new SelectQueryBuilder()
+  .select("id", "name", "email", "age", "city")
+  .from("users")
+  .where("age > ?", 25)
+  .and("city = ?", "Mumbai")
+  .orderBy("name", "ASC")
+  .limit(10)` },
+  { label:"Join + GROUP BY + HAVING", mode:"select", code:
+`new SelectQueryBuilder()
+  .select("u.name", "SUM(o.total_price) AS lifetime_value")
+  .from("users u")
+  .innerJoin("orders o", "o.user_id = u.id")
+  .groupBy("u.id", "u.name")
+  .having("SUM(o.total_price) > 3000")
+  .orderBy("lifetime_value", "DESC")` },
+  { label:"Search (LIKE)", mode:"select", code:
+`new SelectQueryBuilder()
+  .select("*")
+  .from("products")
+  .where("name LIKE ?", "%phone%")` },
+  { label:"DISTINCT", mode:"select", code:
+`new SelectQueryBuilder()
+  .select("city")
+  .distinct()
+  .from("users")` },
+  { label:"Insert", mode:"insert", code:
+`new InsertQueryBuilder()
+  .into("users")
+  .set("name", "Meera Kulkarni")
+  .set("email", "meera.k@example.com")
+  .set("age", 24)
+  .set("city", "Pune")` },
+  { label:"Update", mode:"update", code:
+`new UpdateQueryBuilder()
+  .update("users")
+  .set("city", "Bengaluru")
+  .where("id = ?", 2)` },
+  { label:"Delete", mode:"delete", code:
+`new DeleteQueryBuilder()
+  .from("orders")
+  .where("id = ?", 8)` }
+];
+
+/* ======================================================================
+   UI WIRING
+   ====================================================================== */
+const editor = document.getElementById("editor");
+const exampleRow = document.getElementById("exampleRow");
+const modePills = document.getElementById("modePills");
+let currentMode = "select";
+
+function renderExamples(){
+  exampleRow.innerHTML = "";
+  EXAMPLES.filter(e=>e.mode===currentMode).forEach(ex=>{
+    const el = document.createElement("div");
+    el.className = "pill-ex";
+    el.textContent = ex.label;
+    el.onclick = ()=>{ editor.value = ex.code; };
+    exampleRow.appendChild(el);
+  });
+}
+
+modePills.addEventListener("click", (e)=>{
+  const pill = e.target.closest(".pill-mode");
+  if(!pill) return;
+  document.querySelectorAll(".pill-mode").forEach(p=>p.classList.remove("active"));
+  pill.classList.add("active");
+  currentMode = pill.dataset.mode;
+  renderExamples();
+  const first = EXAMPLES.find(e=>e.mode===currentMode);
+  if(first) editor.value = first.code;
+});
+
+editor.addEventListener("keydown", (e)=>{
+  if(e.key==="Tab"){
+    e.preventDefault();
+    const start = editor.selectionStart, end = editor.selectionEnd;
+    editor.value = editor.value.slice(0,start) + "  " + editor.value.slice(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+  }
+});
+
+renderExamples();
+editor.value = EXAMPLES[0].code;
+
+/* ---- tabs ---- */
+document.getElementById("tabRow").addEventListener("click", (e)=>{
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+  tab.classList.add("active");
+  document.getElementById("tab-"+tab.dataset.tab).classList.add("active");
+});
+
+function switchToTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
+  document.querySelectorAll(".tab-content").forEach(c=>c.classList.toggle("active", c.id==="tab-"+name));
+}
+
+/* ---- output helpers ---- */
+function showSQL(sql){
+  const el = document.getElementById("sqlOutput");
+  el.textContent = sql;
+  el.classList.toggle("empty", !sql);
+}
+
+function renderTable(container, columns, rows){
+  if(!rows.length){
+    container.innerHTML = '<div class="msg-box info">No rows matched.</div>';
+    return;
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+  const table = document.createElement("table");
+  table.className = "result";
+  const thead = document.createElement("tr");
+  columns.forEach(c=>{ const th=document.createElement("th"); th.textContent=c; thead.appendChild(th); });
+  table.appendChild(thead);
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    columns.forEach(c=>{
+      const td = document.createElement("td");
+      const v = r[c];
+      if(v===null || v===undefined){ td.innerHTML = '<span class="null-val">null</span>'; }
+      else td.textContent = v;
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+  wrap.appendChild(table);
+  container.innerHTML = "";
+  container.appendChild(wrap);
+}
+
+function showResultTable(columns, rows){
+  document.getElementById("resultMeta").textContent = rows.length + " row(s)";
+  renderTable(document.getElementById("resultArea"), columns, rows);
+}
+
+function showResultMessage(msg){
+  document.getElementById("resultMeta").textContent = "";
+  document.getElementById("resultArea").innerHTML = '<div class="msg-box ok">' + msg + '</div>';
+}
+
+function showResultError(msg){
+  document.getElementById("resultMeta").textContent = "";
+  document.getElementById("resultArea").innerHTML = '<div class="msg-box err">' + msg + '</div>';
+}
+
+function logLine(msg, kind){
+  const c = document.getElementById("consoleArea");
+  const div = document.createElement("div");
+  div.className = "line" + (kind ? " "+kind : "");
+  const ts = new Date().toLocaleTimeString();
+  div.innerHTML = '<span class="ts">' + ts + '</span>' + msg;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+
+function renderDbTables(){
+  const container = document.getElementById("dbTables");
+  container.innerHTML = "";
+  Object.keys(db).forEach(tname=>{
+    const rows = db[tname];
+    const section = document.createElement("div");
+    section.className = "db-table";
+    const h3 = document.createElement("h3");
+    h3.innerHTML = tname + ' <span class="count">' + rows.length + ' row(s)</span>';
+    section.appendChild(h3);
+    const body = document.createElement("div");
+    renderTable(body, rows[0] ? Object.keys(rows[0]) : [], rows);
+    section.appendChild(body);
+    container.appendChild(section);
+  });
+}
+renderDbTables();
+
+/* ---- run ---- */
+document.getElementById("runBtn").addEventListener("click", runCode);
+
+function runCode(){
+  const code = editor.value.trim();
+  if(!code){ logLine("Nothing to run.", "err"); return; }
+
+  let qb;
+  try{
+    qb = new Function("SelectQueryBuilder","InsertQueryBuilder","UpdateQueryBuilder","DeleteQueryBuilder",
+      "return (\n" + code + "\n);"
+    )(SelectQueryBuilder, InsertQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder);
+  }catch(e){
+    logLine("Syntax error: " + e.message, "err");
+    showSQL("");
+    showResultError(e.message);
+    switchToTab("console");
+    return;
+  }
+
+  if(!qb || typeof qb.build !== "function"){
+    const msg = "Your code must evaluate to a QueryBuilder instance — e.g. new SelectQueryBuilder()...chain (no .build() call needed, the sandbox does that).";
+    logLine(msg, "err");
+    showResultError(msg);
+    switchToTab("console");
+    return;
+  }
+
+  let sql;
+  try{
+    sql = qb.build();
+  }catch(e){
+    logLine(e.message, "err");
+    showSQL("");
+    showResultError(e.message);
+    switchToTab("result");
+    return;
+  }
+  showSQL(sql);
+
+  try{
+    if(qb instanceof SelectQueryBuilder){
+      const { columns, rows } = runSelect(qb);
+      showResultTable(columns, rows);
+      logLine(rows.length + " row(s) returned.", "ok");
+    } else if(qb instanceof InsertQueryBuilder){
+      const r = runInsert(qb);
+      showResultTable(Object.keys(r.row), [r.row]);
+      logLine("1 row inserted into " + qb._table + " — new id = " + r.insertedId + ".", "ok");
+      renderDbTables();
+    } else if(qb instanceof UpdateQueryBuilder){
+      const r = runUpdate(qb);
+      showResultMessage(r.updatedCount + " row(s) updated in " + qb._table + ".");
+      logLine(r.updatedCount + " row(s) updated in " + qb._table + ".", "ok");
+      renderDbTables();
+    } else if(qb instanceof DeleteQueryBuilder){
+      const r = runDelete(qb);
+      showResultMessage(r.deletedCount + " row(s) deleted from " + qb._table + ".");
+      logLine(r.deletedCount + " row(s) deleted from " + qb._table + ".", "ok");
+      renderDbTables();
+    }
+    switchToTab("result");
+  }catch(e){
+    logLine(e.message, "err");
+    showResultError(e.message);
+    switchToTab("console");
+  }
+}
+
+document.getElementById("resetDbBtn").addEventListener("click", ()=>{
+  db = JSON.parse(JSON.stringify(SEED));
+  renderDbTables();
+  logLine("Mock database reset to seed data.", "ok");
+});
+
+logLine("Sandbox ready. This executes your builder chain against an in-memory mock database — no real MySQL connection.", "ok");
+</script>
+</body>
+</html>
