@@ -134,7 +134,7 @@ export default function Home(){
             <p className="hero-subtitle">Java Backend Engineer · Nagpur, India</p>
 
             <p className="hero-statement">
-              I design and build reliable backend systems in Java &amp; Spring Boot.
+              Java is my core strength. I learn by analysing codebases and building systems from scratch.
             </p>
 
             <div className="hero-actions">
