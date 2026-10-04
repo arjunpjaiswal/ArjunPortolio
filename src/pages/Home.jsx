@@ -127,7 +127,7 @@ export default function Home(){
           <div>
             <div className={`status-pill hero-anim hero-anim--1${heroVisible ? ' hero-anim--in' : ''}`}>
               <span className="status-dot"></span>
-              Graduating 2027 · Open to SDE &amp; backend roles
+              <span>Graduating 2027 · Open to SDE &amp; backend roles</span>
               <span className="blink-cursor" aria-hidden="true">█</span>
             </div>
 
@@ -206,6 +206,14 @@ export default function Home(){
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
                 <span>Email</span>
+              </a>
+            </div>
+
+            {/* Subtle scroll hint to balance empty space bottom-left */}
+            <div className={`hero-scroll-wrap hero-anim hero-anim--5${heroVisible ? ' hero-anim--in' : ''}`}>
+              <a href="#projects" className="hero-scroll-hint" aria-label="Scroll to featured projects">
+                <span className="hero-scroll-arrow" aria-hidden="true">↓</span>
+                <span>scroll</span>
               </a>
             </div>
           </div>
