@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import profilePic from '../assets/profile.png'
 import CopyButton from '../components/CopyButton.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -120,9 +121,11 @@ export default function Home(){
 
       {/* ---------- Hero Section ---------- */}
       <section className="hero" id="about" style={{ borderTop: 'none' }}>
-        <div className={`hero-single hero-fade ${heroVisible ? 'is-visible' : ''}`}>
+        <div className={`hero-two-col hero-fade ${heroVisible ? 'is-visible' : ''}`}>
 
-          <div className="status-badge">
+          {/* Left column: all existing content — untouched */}
+          <div className="hero-content-col">
+            <div className="status-badge">
               <span className="status-dot"></span>
               <span>Open to SDE roles · 2027 grad</span>
             </div>
@@ -181,6 +184,17 @@ export default function Home(){
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Right column: photo with glow + bottom-fade mask */}
+          <div className="hero-photo-wrap">
+            <img
+              className="hero-photo"
+              src={profilePic}
+              alt="Arjun Pankaj Jaiswal"
+              loading="eager"
+            />
+          </div>
 
         </div>
       </section>
