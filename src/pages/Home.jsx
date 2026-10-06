@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import profilePic from '../assets/profile.png'
 import CopyButton from '../components/CopyButton.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -121,11 +120,9 @@ export default function Home(){
 
       {/* ---------- Hero Section ---------- */}
       <section className="hero" id="about" style={{ borderTop: 'none' }}>
-        <div className={`hero-grid hero-fade ${heroVisible ? 'is-visible' : ''}`}>
+        <div className={`hero-single hero-fade ${heroVisible ? 'is-visible' : ''}`}>
 
-          {/* Left column: clean typography & actions */}
-          <div className="hero-content">
-            <div className="status-badge">
+          <div className="status-badge">
               <span className="status-dot"></span>
               <span>Open to SDE roles · 2027 grad</span>
             </div>
@@ -184,16 +181,6 @@ export default function Home(){
                 </a>
               </div>
             </div>
-          </div>
-
-          {/* Right column: profile window frame */}
-          <div className="editor-frame">
-            <div className="editor-titlebar">
-              <span className="dot r"></span><span className="dot y"></span><span className="dot g"></span>
-              <span>profile.png</span>
-            </div>
-            <img className="editor-photo" src={profilePic} alt="Photo of Arjun Pankaj Jaiswal" />
-            <div className="editor-caption">Nagpur, India · Final-Year IT</div>
           </div>
 
         </div>

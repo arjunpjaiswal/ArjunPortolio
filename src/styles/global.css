@@ -111,6 +111,10 @@ ul{ margin:0; padding:0; }
   align-items:center;
   width:100%;
 }
+.hero-single{
+  max-width:640px;
+  width:100%;
+}
 
 /* Subtle, gentle fade-in on load */
 .hero-fade{
@@ -175,7 +179,6 @@ ul{ margin:0; padding:0; }
   line-height:1.6;
   color:var(--text);
   margin:0 0 28px;
-  max-width:48ch;
 }
 
 /* Hero actions: buttons + plain icon links below */
