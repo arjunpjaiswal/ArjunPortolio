@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import aboutPic from '../assets/about-profile.png'
+import profilePic from '../assets/profile.png'
 import CopyButton from '../components/CopyButton.jsx'
 import Breadcrumb from '../components/Breadcrumb.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
@@ -103,7 +103,9 @@ export default function About() {
               <span className="dot r" /><span className="dot y" /><span className="dot g" />
               <span>profile.png</span>
             </div>
-            <img className="editor-photo" src={aboutPic} alt="Arjun Pankaj Jaiswal" />
+            <div className="editor-photo-wrap">
+              <img className="editor-photo" src={profilePic} alt="Arjun Pankaj Jaiswal" />
+            </div>
             <div className="editor-caption">Nagpur, India · Final-Year IT</div>
           </div>
 
