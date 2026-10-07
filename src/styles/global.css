@@ -422,13 +422,15 @@ section{
 
 /* ---------- Dual-Column Bento Project Cards ---------- */
 .bento-project{
-  border:1px solid var(--border); border-radius:8px;
+  border:1px solid rgba(124, 92, 252, 0.2); border-radius:10px;
   background:var(--bg-raised);
   padding:28px; margin-bottom:24px;
-  transition:border-color .2s;
+  box-shadow:0 0 35px rgba(124, 92, 252, 0.08);
+  transition:border-color .25s ease, box-shadow .25s ease;
 }
 .bento-project:hover{
-  border-color:#333333;
+  border-color:rgba(124, 92, 252, 0.45);
+  box-shadow:0 0 55px rgba(124, 92, 252, 0.2), 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 .bento-grid{ display:grid; grid-template-columns:1.15fr 0.95fr; gap:26px; align-items:stretch; }
 .bento-content{ display:flex; flex-direction:column; justify-content:space-between; }
@@ -490,10 +492,11 @@ section{
 .skill-deck-card{
   border:1px solid var(--border); border-radius:8px;
   background:var(--bg-raised);
-  padding:20px; transition:border-color .15s;
+  padding:20px; transition:border-color .2s ease, box-shadow .2s ease;
 }
 .skill-deck-card:hover{
-  border-color:#333333;
+  border-color:rgba(124, 92, 252, 0.35);
+  box-shadow:0 0 25px rgba(124, 92, 252, 0.12);
 }
 .skill-deck-header{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
 .skill-deck-icon{
@@ -518,15 +521,15 @@ section{
   border:1px solid var(--border); border-radius:8px;
   background:var(--bg-raised);
   padding:22px; display:flex; flex-direction:column;
-  justify-content:space-between; transition:border-color .15s;
+  justify-content:space-between; transition:border-color .2s ease, box-shadow .2s ease;
   text-decoration:none; color:inherit;
 }
 .trophy-card:hover{
   border-color:#333333; text-decoration:none;
 }
-.trophy-card.patent:hover{ border-color:rgba(124,92,252,0.4); }
-.trophy-card.hackathon:hover{ border-color:rgba(52,211,153,0.4); }
-.trophy-card.leetcode:hover{ border-color:rgba(96,165,250,0.4); }
+.trophy-card.patent:hover{ border-color:rgba(124,92,252,0.45); box-shadow:0 0 30px rgba(124,92,252,0.18); }
+.trophy-card.hackathon:hover{ border-color:rgba(52,211,153,0.45); box-shadow:0 0 30px rgba(52,211,153,0.18); }
+.trophy-card.leetcode:hover{ border-color:rgba(96,165,250,0.45); box-shadow:0 0 30px rgba(96,165,250,0.18); }
 .trophy-badge{
   display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600;
   padding:3px 8px; border-radius:4px; font-family:var(--mono); margin-bottom:12px;
