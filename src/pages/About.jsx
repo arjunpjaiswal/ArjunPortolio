@@ -54,7 +54,7 @@ export default function About() {
       setTermOutput([
         '• Registered Design Patent (Govt of India) — Smart Water Bottle',
         '• 3rd Place, Tech Sprint 2026 (GDG RBU) — SmartEdTech',
-        '• 300+ Problems Solved on LeetCode'
+        '• 370+ Problems Solved on LeetCode'
       ])
     } else if (cmd === 'contact') {
       setTermOutput([

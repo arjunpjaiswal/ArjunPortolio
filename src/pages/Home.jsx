@@ -90,7 +90,7 @@ export default function Home(){
       setTermOutput([
         '• Registered Design Patent (Govt of India) — Smart Water Bottle',
         '• 3rd Place, Tech Sprint 2026 (GDG RBU) — SmartEdTech',
-        '• 300+ Problems Solved on LeetCode'
+        '• 370+ Problems Solved on LeetCode'
       ])
     } else if (cmd === 'contact') {
       setTermOutput([
@@ -499,16 +499,24 @@ export default function Home(){
           </Link>
 
           {/* Trophy 3 */}
-          <a href="https://leetcode.com/u/arjunpjaiswal/" target="_blank" rel="noopener" className="trophy-card leetcode">
+          <div className="trophy-card leetcode">
             <div>
               <div className="trophy-badge blue">⚡ Algorithmic Problem Solving</div>
-              <div className="trophy-title">300+ LeetCode Solutions</div>
+              <div className="trophy-title">370+ LeetCode Solutions</div>
               <div className="trophy-desc">
                 Consistent focus on core Data Structures &amp; Algorithms — trees, graphs, dynamic programming, binary search, and multithreaded systems.
               </div>
             </div>
-            <div className="trophy-footer" style={{ color:'var(--blue)' }}>LeetCode: arjunpjaiswal ↗</div>
-          </a>
+            <a
+              href="https://leetcode.com/u/Arjunphj_22"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="trophy-footer"
+              style={{ color: 'var(--blue)' }}
+            >
+              LeetCode: Arjunphj_22 ↗
+            </a>
+          </div>
         </div>
       </section>
 
