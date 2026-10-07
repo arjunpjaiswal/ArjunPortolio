@@ -134,7 +134,7 @@ export default function Home(){
             <p className="hero-subtitle">Java Backend Engineer · Nagpur, India</p>
 
             <p className="hero-statement">
-              Java is my core strength. I learn by analysing codebases and building systems from scratch.
+              Java backend developer who likes understanding how things work under the hood. I build systems from scratch to go beyond the abstractions—currently exploring backend engineering through projects like my <Link to="/projects/gsearch/architecture">search engine</Link> and <Link to="/projects/querybuilder/architecture">SQL query builder</Link>. Graduating in 2027 and open to SDE roles.
             </p>
 
             <div className="hero-actions">

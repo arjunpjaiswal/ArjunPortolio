@@ -246,6 +246,16 @@ ul{ margin:0; padding:0; }
   line-height:1.6;
   color:var(--text);
   margin:0 0 28px;
+  max-width:560px;
+}
+.hero-statement a{
+  color:var(--amber);
+  text-decoration:none;
+  transition:color .15s, text-decoration .15s;
+}
+.hero-statement a:hover{
+  color:var(--amber);
+  text-decoration:underline;
 }
 
 /* Hero actions: buttons + plain icon links below */
